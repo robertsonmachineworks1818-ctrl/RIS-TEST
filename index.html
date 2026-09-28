@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#182b3d">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg">
-<title>RIS</title><!-- Consolidated revision batch R-043 through R-049, including Brother QL-820NWB 1.1in label workflow -->
+<title>RIS</title><!-- Consolidated revision batch R-043 through R-050, including Brother QL-820NWB 1.1in label workflow and 1.1x3.5 print-page correction -->
 <style>
 :root{--bg:#f3f5f7;--card:#fff;--ink:#17202a;--muted:#68737f;--line:#d7dde4;--accent:#244a73;--soft:#edf2f7;--red:#ffdede;--yellow:#fff2b8;--green:#dcf4df;--purple:#eadcff}
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
@@ -22,19 +22,31 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 .wiki-item{background:#fff;border:1px solid var(--line);border-radius:8px;padding:11px;margin-bottom:8px;cursor:pointer}.tag{display:inline-block;padding:2px 6px;border-radius:9px;background:var(--soft);margin:2px;font-size:11px}.notice{background:#fff8dd;border:1px solid #e8d78e;border-radius:8px;padding:10px;margin-bottom:10px}
 .auth{max-width:430px;margin:50px auto}.hidden{display:none!important}dialog{border:0;border-radius:10px;box-shadow:0 15px 60px #0005;width:min(780px,96vw)}form.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}label{display:flex;flex-direction:column;gap:4px}.wide{grid-column:1/-1}
 @media(max-width:800px){.grid2{grid-template-columns:1fr}header .sub{display:none}main{padding:10px}.metric{min-width:calc(50% - 5px)}table{font-size:12px}.tabs{padding-left:0}.tabbtn{padding:12px 11px}}
-@page{size:3in 1.1in;margin:0}
+@page{size:3.5in 1.1in;margin:0}
 @media print{
-  html,body{margin:0!important;padding:0!important;width:3in!important}
-  body *{visibility:hidden}
-  #printArea,#printArea *{visibility:visible}
-  #printArea{display:block!important;position:absolute;left:0;top:0;width:3in;margin:0;padding:0}
-  .labelprint{
-    box-sizing:border-box;width:3in;height:1.1in;margin:0;padding:.08in .11in .05in;
-    page-break-after:always;break-after:page;overflow:hidden;text-align:center;
-    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-    background:#fff;color:#000
+  html,body{
+    margin:0!important;padding:0!important;width:3.5in!important;height:auto!important;
+    min-height:0!important;background:#fff!important;overflow:visible!important
   }
-  .labelprint:last-child{page-break-after:auto;break-after:auto}
+  body>*:not(#printArea){display:none!important}
+  #printArea{
+    display:block!important;position:static!important;visibility:visible!important;
+    width:3.5in!important;height:auto!important;margin:0!important;padding:0!important;
+    overflow:visible!important
+  }
+  #printArea *{visibility:visible!important}
+  .labelprint{
+    box-sizing:border-box!important;width:3.5in!important;height:1.1in!important;
+    min-height:1.1in!important;max-height:1.1in!important;margin:0!important;
+    padding:.08in .13in .05in!important;overflow:hidden!important;text-align:center;
+    display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;
+    background:#fff!important;color:#000!important;
+    page-break-before:auto!important;break-before:auto!important;
+    page-break-after:always!important;break-after:page!important
+  }
+  .labelprint:last-child{
+    page-break-after:auto!important;break-after:auto!important
+  }
   .label-name{
     width:100%;font:700 11pt Arial,sans-serif;line-height:1.05;
     height:.23in;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin:0 0 .015in
@@ -42,7 +54,7 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
   .label-part{
     width:100%;font:700 12pt Arial,sans-serif;line-height:1;margin:0 0 .015in
   }
-  .label-barcode{width:2.55in;height:.34in;display:block;margin:0 auto}
+  .label-barcode{width:3.0in;height:.34in;display:block;margin:0 auto}
   .label-code{font:7.5pt Arial,sans-serif;line-height:1;margin-top:.01in}
 }
 </style>
