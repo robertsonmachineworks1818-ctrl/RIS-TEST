@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#182b3d">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg">
-<title>RIS</title><!-- Consolidated revision batch R-043 through R-051, including direct Brother Smooth Print integration for QL-820NWB 29mm continuous media -->
+<title>RIS</title><!-- Consolidated revision batch R-043 through R-052, including Brother Smooth Print cache-bypass for unique label jobs -->
 <style>
 :root{--bg:#f3f5f7;--card:#fff;--ink:#17202a;--muted:#68737f;--line:#d7dde4;--accent:#244a73;--soft:#edf2f7;--red:#ffdede;--yellow:#fff2b8;--green:#dcf4df;--purple:#eadcff}
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
@@ -351,14 +351,19 @@ function makeBrotherLabelPdf(code,desc){
 }
 function brotherDirectPrint(code,desc,q){
   q=Math.max(1,Math.floor(num(q)||1));
+  let stamp=Date.now();
+  let safeCode=String(code||'label').replace(/[^A-Za-z0-9._-]+/g,'_');
   let p=new URLSearchParams();
-  p.set('filename','RIS-label.pdf');
+  // Smooth Print may reuse a cached attachment when the same filename is sent repeatedly.
+  // Give every print job a unique filename so the current RIS label is always loaded.
+  p.set('filename',`RIS-${safeCode}-${stamp}.pdf`);
   p.set('fileattach',makeBrotherLabelPdf(code,desc));
   p.set('size','RollW29');
   p.set('copies',String(q));
   p.set('printMode','original');
   p.set('orientation','landscape');
   p.set('printQuality','normal');
+  p.set('jobid',`${safeCode}-${stamp}`);
   window.location.href='brotherwebprint://print?'+p.toString()
 }
 function browserPrintLabels(code,desc,q){
