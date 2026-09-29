@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#182b3d">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg">
-<title>RIS</title><!-- Consolidated revision batch R-043 through R-052, including Brother Smooth Print cache-bypass for unique label jobs -->
+<title>RIS</title><!-- Consolidated revision batch R-043 through R-057, including small labels, manufacturer barcodes, direct order receiving, packing-slip photos, and safe BOM numbering -->
 <style>
 :root{--bg:#f3f5f7;--card:#fff;--ink:#17202a;--muted:#68737f;--line:#d7dde4;--accent:#244a73;--soft:#edf2f7;--red:#ffdede;--yellow:#fff2b8;--green:#dcf4df;--purple:#eadcff}
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
@@ -113,14 +113,27 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 </div>
 
 <dialog id="partDlg"><h2 id="partDlgTitle">Part</h2><form method="dialog" class="grid">
-<label class="wide">Description<input id="fDesc"></label><label>Category<input id="fCat"></label><label>Manufacturer<input id="fMfr"></label><label>Manufacturer P/N<input id="fMpn"></label><label>Supplier<input id="fVendor"></label><label>Supplier P/N<input id="fVpn"></label><label class="wide">Supplier product page<input id="fUrl"></label><label>Purchase Cost<input id="fCost" type="number" step=".01"></label><label>Retail Price<input id="fRetail" type="number" step=".01"></label><label>Markup %<input id="fMarkup" type="number" step=".01"></label><label># Needed/Unit<input id="fNeeded" type="number" step=".01" min="0"></label>
+<label class="wide">Description<input id="fDesc"></label><label>Category<input id="fCat"></label><label>Manufacturer<input id="fMfr"></label><label>Manufacturer P/N<input id="fMpn"></label><label>Manufacturer Barcode<input id="fMfrBarcode"></label><label>Supplier<input id="fVendor"></label><label>Supplier P/N<input id="fVpn"></label><label class="wide">Supplier product page<input id="fUrl"></label><label>Purchase Cost<input id="fCost" type="number" step=".01"></label><label>Retail Price<input id="fRetail" type="number" step=".01"></label><label>Markup %<input id="fMarkup" type="number" step=".01"></label><label># Needed/Unit<input id="fNeeded" type="number" step=".01" min="0"></label>
 <label>Total On Hand<input id="fOnHand" type="number" step=".01" min="0"></label><label>Adjustment Reason<input id="fAdjustReason" placeholder="Optional — count correction, damaged stock, etc."></label>
-<label>Print label after save?<select id="fPrint"><option value="no">No</option><option value="yes">Yes</option></select></label><label>Labels<input id="fPrintQty" type="number" min="1" value="1"></label><label class="wide">Notes<textarea id="fNotes"></textarea></label>
+<label>Print label after save?<select id="fPrint"><option value="no">No</option><option value="yes">Yes</option></select></label><label>Labels<input id="fPrintQty" type="number" min="1" value="1"></label><label style="display:flex;align-items:center;gap:8px"><input id="fSmallLabel" type="checkbox" style="width:auto"> Small label (1.1" × 1.1")</label><label class="wide">Notes<textarea id="fNotes"></textarea></label>
 <div id="partHistoryRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" id="partReceiptBtn">Receipt History</button></div><div id="partDangerRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" class="warn" id="deactivatePartBtn">Deactivate Part</button><button type="button" class="danger" id="deletePartBtn">Delete Part</button></div>
 <div class="wide row" style="justify-content:flex-end"><button value="cancel">Cancel</button><button type="button" class="primary" id="savePartBtn">Save</button></div></form></dialog>
 
 <dialog id="receiveDlg"><h2>Receive Part</h2><div id="receivePartName"></div><label>Quantity<input id="receiveQty" type="number" min=".01" step=".01" value="1"></label><label>PO / Reference<input id="receiveRef" placeholder="Enter PO number to reduce On Order"></label><label>Notes<textarea id="receiveNotes"></textarea></label><label style="display:flex;align-items:center;gap:8px"><input id="receivePrintBarcode" type="checkbox" style="width:auto"> Print barcode labels</label><div class="row" style="justify-content:flex-end"><button onclick="receiveDlg.close()">Cancel</button><button class="primary" id="receiveSaveBtn">Receive</button></div></dialog>
 
+
+
+<dialog id="receiveOrderDlg"><h2>Receive This Order</h2>
+<div id="receiveOrderSummary"></div>
+<div class="grid">
+<label>Quantity Received<input id="receiveOrderQty" type="number" min=".01" step=".01"></label>
+<label>Packing Slip #<input id="receiveOrderPackingSlip" placeholder="Optional"></label>
+<label class="wide">Notes<textarea id="receiveOrderNotes" rows="3"></textarea></label>
+<label class="wide">Packing Slip / Receipt Photo<input id="receiveOrderFiles" type="file" multiple accept="image/*,.pdf" capture="environment"></label>
+<label class="wide" style="display:flex;align-items:center;gap:8px"><input id="receiveOrderPrintBarcode" type="checkbox" style="width:auto"> Print barcode labels after receiving</label>
+</div>
+<div class="row" style="justify-content:flex-end;margin-top:10px"><button onclick="receiveOrderDlg.close()">Cancel</button><button class="primary" id="saveReceiveOrderBtn">Receive Order</button></div>
+</dialog>
 
 <dialog id="orderDlg"><h2>Add Order</h2><div id="orderPartName"></div>
 <form class="grid" method="dialog">
@@ -136,7 +149,7 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 
 <dialog id="receiptLogDlg"><h2 id="receiptLogTitle">Receiving Log</h2>
 <div class="toolbar"><input id="receiptSearch" placeholder="Search part, PO/reference, notes…" size="34"><label>Date<input id="receiptDate" type="date"></label><button id="clearReceiptFiltersBtn">Clear</button></div>
-<div class="tablewrap" style="max-height:62vh"><table style="min-width:930px"><thead><tr><th>Date / Time</th><th>Part</th><th>Description</th><th class="num">Qty</th><th>PO / Reference</th><th>Notes</th><th>Received By</th></tr></thead><tbody id="receiptLogBody"></tbody></table></div>
+<div class="tablewrap" style="max-height:62vh"><table style="min-width:930px"><thead><tr><th>Date / Time</th><th>Part</th><th>Description</th><th class="num">Qty</th><th>PO / Reference</th><th>Notes</th><th>Received By</th><th>Attachments</th></tr></thead><tbody id="receiptLogBody"></tbody></table></div>
 <div class="row" style="justify-content:space-between;margin-top:10px"><button id="exportReceiptLogBtn">Export Spreadsheet</button><button onclick="receiptLogDlg.close()">Close</button></div>
 </dialog>
 
@@ -163,7 +176,7 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {jsPDF} from 'https://esm.sh/jspdf@2.5.2';
 const sb=createClient('https://coskdrjelwqpdtrzawnu.supabase.co','sb_publishable_Q2bRyeTaGgcVfUn9uP7YsA_zN03UPsH');
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),num=v=>Number(v||0),money=v=>v==null?'—':'$'+num(v).toFixed(2),dt=v=>v?new Date(v).toLocaleString():'—';
-let parts=[],units=[],tasks=[],tests=[],wiki=[],bomItems=[],suppliers=[],supply=[],currentUnit=null,editingPart=null,receivePart=null,orderPart=null,receiptFilterPart=null,receiptRows=[],activeOrderPart=null,activeOrderRows=[],activeOrderPOs=[],activeOrderAttachments=[],attachmentPOId=null,editingWiki=null,editingHistory=null,sortKey='part_number',sortDir=1,calcLock=false;
+let parts=[],units=[],tasks=[],tests=[],wiki=[],bomItems=[],suppliers=[],supply=[],currentUnit=null,editingPart=null,receivePart=null,orderPart=null,receiveOrderLine=null,receiptFilterPart=null,receiptRows=[],receiptAttachmentRows=[],activeOrderPart=null,activeOrderRows=[],activeOrderPOs=[],activeOrderAttachments=[],attachmentPOId=null,editingWiki=null,editingHistory=null,sortKey='part_number',sortDir=1,calcLock=false;
 
 function msg(x){$('authMsg').textContent=x||''}
 async function authState(){let{data:{session}}=await sb.auth.getSession();let on=!!session;$('authBox').classList.toggle('hidden',on);$('app').classList.toggle('hidden',!on);$('logoutBtn').classList.toggle('hidden',!on);$('userEmail').textContent=on?session.user.email:'';if(on)await loadAll()}
@@ -189,45 +202,154 @@ $('refreshBtn').onclick=loadAll;
 function partVM(p){let s=supply.find(x=>x.part_id===p.id)||{},pv=[...suppliers.filter(x=>x.part_id===p.id)].sort((a,b)=>num(a.supplier_rank||99)-num(b.supplier_rank||99))[0],bi=bomItems.find(x=>x.part_id===p.id),unitsIn=Math.max(1,num($('runUnits').value)||1),needed=num(bi?.quantity_required),required=needed*unitsIn;return{...p,vendor:pv?.vendors?.name||'',vendorPart:pv?.vendor_part_number||'',url:p.product_url||pv?.purchase_url||'',cost:p.last_purchase_cost??pv?.unit_cost,retail:p.retail_price,markup:p.markup_percent,on_hand:num(s.quantity_on_hand),on_order:num(s.quantity_on_order),needed,remaining:required,pv,bi}}
 function cmp(a,b,k){let av=a[k],bv=b[k];if(typeof av==='number'||typeof bv==='number')return(num(av)-num(bv))*sortDir;return String(av??'').localeCompare(String(bv??''))*sortDir}
 function stockClass(x){if(x.on_hand>=x.remaining)return'stock-green';if(x.on_hand+x.on_order>=x.remaining&&x.remaining>0)return'stock-purple';if(x.on_hand>0)return'stock-yellow';return'stock-red'}
-function renderParts(){let q=$('search').value.toLowerCase(),v=parts.map(partVM).filter(x=>[x.part_number,x.description,x.vendor,x.manufacturer,x.manufacturer_part_number].join(' ').toLowerCase().includes(q));v.sort((a,b)=>cmp(a,b,sortKey));$('partsBody').innerHTML=v.map(x=>`<tr class="${stockClass(x)}"><td><b>${esc(x.part_number)}</b></td><td>${esc(x.description)}</td><td>${esc(x.vendor)||'—'}</td><td>${x.url?`<a target="_blank" rel="noopener" href="${esc(x.url)}">View Part</a>`:'—'}</td><td class="num">${money(x.cost)}</td><td class="num">${money(x.retail)}</td><td class="num">${x.markup==null?'—':num(x.markup).toFixed(1)+'%'}</td><td class="num">${x.on_hand}</td><td class="num">${x.needed}</td><td class="num">${x.remaining}</td><td class="num">${x.on_order}</td><td class="actions"><button class="small" data-order="${x.id}">Add Order</button>${x.on_order>0?`<button class="small" data-activeorder="${x.id}">On Order: ${x.on_order}</button>`:""}<button class="small" data-rec="${x.id}">Receive</button><button class="small" data-edit="${x.id}">Edit</button><button class="small" data-label="${x.id}">Print Label</button></td></tr>`).join('');
+function renderParts(){let q=$('search').value.toLowerCase(),v=parts.map(partVM).filter(x=>[x.part_number,x.description,x.vendor,x.manufacturer,x.manufacturer_part_number,x.manufacturer_barcode].join(' ').toLowerCase().includes(q));v.sort((a,b)=>cmp(a,b,sortKey));$('partsBody').innerHTML=v.map(x=>`<tr class="${stockClass(x)}"><td><b>${esc(x.part_number)}</b></td><td>${esc(x.description)}</td><td>${esc(x.vendor)||'—'}</td><td>${x.url?`<a target="_blank" rel="noopener" href="${esc(x.url)}">View Part</a>`:'—'}</td><td class="num">${money(x.cost)}</td><td class="num">${money(x.retail)}</td><td class="num">${x.markup==null?'—':num(x.markup).toFixed(1)+'%'}</td><td class="num">${x.on_hand}</td><td class="num">${x.needed}</td><td class="num">${x.remaining}</td><td class="num">${x.on_order}</td><td class="actions"><button class="small" data-order="${x.id}">Add Order</button>${x.on_order>0?`<button class="small" data-activeorder="${x.id}">On Order: ${x.on_order}</button>`:""}<button class="small" data-rec="${x.id}">Receive</button><button class="small" data-edit="${x.id}">Edit</button><button class="small" data-label="${x.id}">Print Label</button></td></tr>`).join('');
 $('mParts').textContent=parts.length;$('mHand').textContent=supply.reduce((a,x)=>a+num(x.quantity_on_hand),0);$('mShort').textContent=v.filter(x=>x.on_hand<x.remaining).length;$('mOrder').textContent=supply.reduce((a,x)=>a+num(x.quantity_on_order),0);
-document.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>openOrder(b.dataset.order));document.querySelectorAll('[data-activeorder]').forEach(b=>b.onclick=()=>openActiveOrders(b.dataset.activeorder));document.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>openReceive(b.dataset.rec));document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openPart(b.dataset.edit));document.querySelectorAll('[data-label]').forEach(b=>b.onclick=()=>{let x=partVM(parts.find(p=>p.id===b.dataset.label));askPrint('PART',x.part_number,x.description)})}
+document.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>openOrder(b.dataset.order));document.querySelectorAll('[data-activeorder]').forEach(b=>b.onclick=()=>openActiveOrders(b.dataset.activeorder));document.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>openReceive(b.dataset.rec));document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openPart(b.dataset.edit));document.querySelectorAll('[data-label]').forEach(b=>b.onclick=()=>{let x=partVM(parts.find(p=>p.id===b.dataset.label));askPrint('PART',x.part_number,x.description,x.small_label)})}
 document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{let k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1}renderParts()});$('search').oninput=renderParts;$('runUnits').oninput=renderParts;
 
 $('addPartBtn').onclick=()=>openPart(null);
-function openPart(id){editingPart=id?partVM(parts.find(p=>p.id===id)):null;$('partDlgTitle').textContent=id?'Edit '+editingPart.part_number:'Add Part';let x=editingPart||{};$('fDesc').value=x.description||'';$('fCat').value=x.category||'';$('fMfr').value=x.manufacturer||'';$('fMpn').value=x.manufacturer_part_number||'';$('fVendor').value=x.vendor||'';$('fVpn').value=x.vendorPart||'';$('fUrl').value=x.url||'';$('fCost').value=x.cost??'';$('fRetail').value=x.retail??'';$('fMarkup').value=x.markup??'';$('fNeeded').value=x.needed??1;$('fOnHand').value=x.on_hand??0;$('fAdjustReason').value='';$('fNotes').value=x.notes||'';$('fPrint').value='no';$('fPrintQty').value=1;$('partDangerRow').classList.toggle('hidden',!id);$('partHistoryRow').classList.toggle('hidden',!id);partDlg.showModal()}
+function openPart(id){editingPart=id?partVM(parts.find(p=>p.id===id)):null;$('partDlgTitle').textContent=id?'Edit '+editingPart.part_number:'Add Part';let x=editingPart||{};$('fDesc').value=x.description||'';$('fCat').value=x.category||'';$('fMfr').value=x.manufacturer||'';$('fMpn').value=x.manufacturer_part_number||'';$('fMfrBarcode').value=x.manufacturer_barcode||'';$('fSmallLabel').checked=!!x.small_label;$('fVendor').value=x.vendor||'';$('fVpn').value=x.vendorPart||'';$('fUrl').value=x.url||'';$('fCost').value=x.cost??'';$('fRetail').value=x.retail??'';$('fMarkup').value=x.markup??'';$('fNeeded').value=x.needed??1;$('fOnHand').value=x.on_hand??0;$('fAdjustReason').value='';$('fNotes').value=x.notes||'';$('fPrint').value='no';$('fPrintQty').value=1;$('partDangerRow').classList.toggle('hidden',!id);$('partHistoryRow').classList.toggle('hidden',!id);partDlg.showModal()}
 partDlg.querySelector('form').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='BUTTON'){e.preventDefault();e.stopPropagation()}});
 $('fMarkup').oninput=()=>{if(calcLock)return;calcLock=true;let c=num($('fCost').value),m=num($('fMarkup').value);if($('fMarkup').value!==''&&c>=0)$('fRetail').value=(c*(1+m/100)).toFixed(2);calcLock=false};
 $('fRetail').oninput=()=>{if(calcLock)return;calcLock=true;let c=num($('fCost').value),r=num($('fRetail').value);if(c>0&&$('fRetail').value!=='')$('fMarkup').value=(((r-c)/c)*100).toFixed(2);calcLock=false};
 
 $('savePartBtn').onclick=async()=>{try{
-let payload={description:$('fDesc').value.trim(),category:$('fCat').value.trim()||null,manufacturer:$('fMfr').value.trim()||null,manufacturer_part_number:$('fMpn').value.trim()||null,last_purchase_cost:$('fCost').value===''?null:num($('fCost').value),retail_price:$('fRetail').value===''?null:num($('fRetail').value),markup_percent:$('fMarkup').value===''?null:num($('fMarkup').value),notes:$('fNotes').value.trim()||null,product_url:$('fUrl').value.trim()||null};
+let payload={description:$('fDesc').value.trim(),category:$('fCat').value.trim()||null,manufacturer:$('fMfr').value.trim()||null,manufacturer_part_number:$('fMpn').value.trim()||null,manufacturer_barcode:$('fMfrBarcode').value.trim()||null,small_label:$('fSmallLabel').checked,last_purchase_cost:$('fCost').value===''?null:num($('fCost').value),retail_price:$('fRetail').value===''?null:num($('fRetail').value),markup_percent:$('fMarkup').value===''?null:num($('fMarkup').value),notes:$('fNotes').value.trim()||null,product_url:$('fUrl').value.trim()||null};
 let part;if(editingPart){let r=await sb.from('parts').update(payload).eq('id',editingPart.id).select().single();if(r.error)throw r.error;part=r.data}else{payload.part_number='';payload.barcode_value='';let r=await sb.from('parts').insert(payload).select().single();if(r.error)throw r.error;part=r.data}
-let need=num($('fNeeded').value),existing=bomItems.find(x=>x.part_id===part.id);if(existing){let r=await sb.from('bom_items').update({quantity_required:need}).eq('id',existing.id);if(r.error)throw r.error}else if(need>0){let br=await sb.from('bom_revisions').select('id').order('created_at',{ascending:false}).limit(1).single();if(!br.error){let mx=bomItems.reduce((m,x)=>Math.max(m,num(x.line_number)),0)+1;let rr=await sb.from('bom_items').insert({bom_revision_id:br.data.id,line_number:mx,part_id:part.id,quantity_required:need,unit_of_measure:'EA'});if(rr.error)throw rr.error}}
+let need=num($('fNeeded').value);let bomr=await sb.rpc('ris_set_bom_requirement',{p_part_id:part.id,p_quantity:need,p_bom_revision_id:null});if(bomr.error)throw bomr.error
 let vn=$('fVendor').value.trim();if(vn){let vr=await sb.from('vendors').select('id,name').ilike('name',vn).limit(1),vid=vr.data?.[0]?.id;if(!vid){let ins=await sb.from('vendors').insert({name:vn}).select('id').single();if(ins.error)throw ins.error;vid=ins.data.id}let pvs=await sb.from('part_vendors').select('id').eq('part_id',part.id).order('supplier_rank',{ascending:true}).limit(1);let pp={part_id:part.id,vendor_id:vid,vendor_part_number:$('fVpn').value.trim()||null,unit_cost:$('fCost').value===''?null:num($('fCost').value),purchase_url:$('fUrl').value.trim()||null,supplier_rank:1,active:true};let rr=pvs.data?.length?await sb.from('part_vendors').update(pp).eq('id',pvs.data[0].id):await sb.from('part_vendors').insert(pp);if(rr.error)throw rr.error}
 let ar=await sb.rpc('ris_set_total_on_hand',{p_part_id:part.id,p_target_quantity:num($('fOnHand').value),p_reason:$('fAdjustReason').value.trim()||null});if(ar.error)throw ar.error;
-let pr=$('fPrint').value==='yes',pq=Math.max(1,num($('fPrintQty').value)||1);partDlg.close();await loadAll();if(pr)printLabels('PART',part.part_number,part.description,pq)
+let pr=$('fPrint').value==='yes',pq=Math.max(1,num($('fPrintQty').value)||1);partDlg.close();await loadAll();if(pr)printLabels('PART',part.part_number,part.description,pq,!!part.small_label)
 }catch(e){alert('Save failed: '+e.message)}};
 
 $('deactivatePartBtn').onclick=async()=>{if(!editingPart)return;if(!confirm(`Deactivate ${editingPart.part_number}? It will be hidden from normal inventory and scanning.`))return;let r=await sb.from('parts').update({active:false}).eq('id',editingPart.id);if(r.error)return alert(r.error.message);partDlg.close();await loadAll()};
 $('deletePartBtn').onclick=async()=>{if(!editingPart)return;if(!confirm(`Permanently delete ${editingPart.part_number} — ${editingPart.description}? This cannot be undone.`))return;let r=await sb.rpc('ris_delete_part',{p_part_id:editingPart.id});if(r.error)return alert(r.error.message);partDlg.close();await loadAll()};
 
 function openReceive(id){receivePart=partVM(parts.find(p=>p.id===id));$('receivePartName').textContent=receivePart.part_number+' — '+receivePart.description;$('receiveQty').value=1;$('receiveRef').value='';$('receiveNotes').value='';$('receivePrintBarcode').checked=false;receiveDlg.showModal()}
-$('receiveSaveBtn').onclick=async()=>{let qty=num($('receiveQty').value),doPrint=$('receivePrintBarcode').checked;let r=await sb.rpc('ris_receive_total',{p_part_id:receivePart.id,p_quantity:qty,p_reference:$('receiveRef').value||null,p_notes:$('receiveNotes').value||null});if(r.error)return alert(r.error.message);let p=receivePart;receiveDlg.close();await loadAll();if(doPrint){if(Number.isInteger(qty)&&qty>0)printLabels('PART',p.part_number,p.description,qty);else alert('Receipt saved. Barcode labels were not printed because the received quantity is not a whole number.')}};
+$('receiveSaveBtn').onclick=async()=>{let qty=num($('receiveQty').value),doPrint=$('receivePrintBarcode').checked;let r=await sb.rpc('ris_receive_total',{p_part_id:receivePart.id,p_quantity:qty,p_reference:$('receiveRef').value||null,p_notes:$('receiveNotes').value||null});if(r.error)return alert(r.error.message);let p=receivePart;receiveDlg.close();await loadAll();if(doPrint){if(Number.isInteger(qty)&&qty>0)printLabels('PART',p.part_number,p.description,qty,!!p.small_label);else alert('Receipt saved. Barcode labels were not printed because the received quantity is not a whole number.')}};
 
 function localDateValue(d=new Date()){let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function openOrder(id){orderPart=partVM(parts.find(p=>p.id===id));$('orderPartName').textContent=orderPart.part_number+' — '+orderPart.description;$('orderQty').value=Math.max(1,orderPart.remaining-orderPart.on_hand-orderPart.on_order)||1;$('orderPO').value='';$('orderVendor').value=orderPart.vendor||'';$('orderCost').value=orderPart.cost??'';$('orderDate').value=localDateValue();$('orderETA').value='';$('orderNotes').value='';$('orderFiles').value='';orderDlg.showModal()}
 function safeFileName(name){return String(name||'file').replace(/[^A-Za-z0-9._-]+/g,'_').replace(/^_+|_+$/g,'')||'file'}
 async function uploadOrderFiles(poId,fileList){let files=Array.from(fileList||[]);for(let f of files){if(f.size>20*1024*1024)throw new Error(`${f.name} is larger than the 20 MB attachment limit.`);let path=`${poId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${safeFileName(f.name)}`;let up=await sb.storage.from('ris-order-documents').upload(path,f,{cacheControl:'3600',upsert:false,contentType:f.type||undefined});if(up.error)throw up.error;let ins=await sb.from('purchase_order_attachments').insert({purchase_order_id:poId,file_name:f.name,storage_path:path,mime_type:f.type||null,size_bytes:f.size});if(ins.error){await sb.storage.from('ris-order-documents').remove([path]);throw ins.error}}}
+
+async function uploadReceiptFiles(receiptId,partId,poId,fileList){
+  let files=Array.from(fileList||[]);
+  for(let f of files){
+    if(f.size>20*1024*1024)throw new Error(`${f.name} is larger than the 20 MB attachment limit.`);
+    let path=`receipts/${receiptId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${safeFileName(f.name)}`;
+    let up=await sb.storage.from('ris-order-documents').upload(path,f,{cacheControl:'3600',upsert:false,contentType:f.type||undefined});
+    if(up.error)throw up.error;
+    let ins=await sb.from('receipt_attachments').insert({
+      receipt_id:receiptId,part_id:partId,purchase_order_id:poId,
+      file_name:f.name,storage_path:path,mime_type:f.type||null,size_bytes:f.size
+    });
+    if(ins.error){
+      await sb.storage.from('ris-order-documents').remove([path]);
+      throw ins.error;
+    }
+  }
+}
+async function openReceiptAttachment(id){
+  let a=receiptAttachmentRows.find(x=>x.id===id);
+  if(!a)return;
+  let r=await sb.storage.from('ris-order-documents').createSignedUrl(a.storage_path,3600);
+  if(r.error)return alert(r.error.message);
+  window.open(r.data.signedUrl,'_blank','noopener')
+}
 $('saveOrderBtn').onclick=async()=>{if(!orderPart)return;let r=await sb.rpc('ris_quick_order_total',{p_part_id:orderPart.id,p_quantity:num($('orderQty').value),p_po_number:$('orderPO').value.trim(),p_vendor_name:$('orderVendor').value.trim()||null,p_order_date:$('orderDate').value||null,p_expected_date:$('orderETA').value||null,p_unit_cost:$('orderCost').value===''?null:num($('orderCost').value),p_notes:$('orderNotes').value.trim()||null});if(r.error)return alert('Add order failed: '+r.error.message);try{if($('orderFiles').files.length)await uploadOrderFiles(r.data,$('orderFiles').files)}catch(e){alert('Order was saved, but an attachment failed to upload: '+e.message)}orderDlg.close();await loadAll()};
 
-async function openReceiptLog(partId=null){receiptFilterPart=partId;let title='Receiving Log';if(partId){let p=parts.find(x=>x.id===partId);title='Receipt History — '+(p?.part_number||'Part')}$('receiptLogTitle').textContent=title;$('receiptSearch').value='';$('receiptDate').value='';let q=sb.from('inventory_transactions').select('id,occurred_at,part_id,quantity_delta,reference_number,reason,received_by_email,parts(part_number,description)').eq('transaction_type','receipt').order('occurred_at',{ascending:false}).limit(1000);if(partId)q=q.eq('part_id',partId);let r=await q;if(r.error)return alert('Could not load receiving history: '+r.error.message);receiptRows=r.data||[];renderReceiptLog();receiptLogDlg.showModal()}
-function filteredReceiptRows(){let s=$('receiptSearch').value.toLowerCase().trim(),d=$('receiptDate').value;return receiptRows.filter(x=>{let ok=!s||[x.parts?.part_number,x.parts?.description,x.reference_number,x.reason,x.received_by_email].join(' ').toLowerCase().includes(s);if(ok&&d)ok=(x.occurred_at||'').slice(0,10)===d;return ok})}
-function renderReceiptLog(){let v=filteredReceiptRows();$('receiptLogBody').innerHTML=v.length?v.map(x=>`<tr><td>${dt(x.occurred_at)}</td><td><b>${esc(x.parts?.part_number||'')}</b></td><td>${esc(x.parts?.description||'')}</td><td class="num">${num(x.quantity_delta)}</td><td>${esc(x.reference_number||'—')}</td><td>${esc(x.reason||'—')}</td><td>${esc(x.received_by_email||'—')}</td></tr>`).join(''):'<tr><td colspan="7" class="muted">No matching receipts.</td></tr>'}
-$('receiptLogBtn').onclick=()=>openReceiptLog(null);$('partReceiptBtn').onclick=()=>editingPart&&openReceiptLog(editingPart.id);$('receiptSearch').oninput=renderReceiptLog;$('receiptDate').onchange=renderReceiptLog;$('clearReceiptFiltersBtn').onclick=()=>{$('receiptSearch').value='';$('receiptDate').value='';renderReceiptLog()};
-$('exportReceiptLogBtn').onclick=()=>{let v=filteredReceiptRows(),data=[['Date / Time','Part Number','Description','Quantity Received','PO / Reference','Notes','Received By']];for(let x of v)data.push([dt(x.occurred_at),x.parts?.part_number||'',x.parts?.description||'',num(x.quantity_delta),x.reference_number||'',x.reason||'',x.received_by_email||'']);downloadCSV(data,'RIS-receiving-log.csv')};
+async function openReceiptLog(partId=null){
+  receiptFilterPart=partId;
+  let title='Receiving Log';
+  if(partId){let p=parts.find(x=>x.id===partId);title='Receipt History — '+(p?.part_number||'Part')}
+  $('receiptLogTitle').textContent=title;$('receiptSearch').value='';$('receiptDate').value='';
+  let q=sb.from('inventory_transactions').select('id,occurred_at,part_id,quantity_delta,reference_number,reason,received_by_email,parts(part_number,description)').eq('transaction_type','receipt').order('occurred_at',{ascending:false}).limit(1000);
+  if(partId)q=q.eq('part_id',partId);
+  let r=await q;if(r.error)return alert('Could not load receiving history: '+r.error.message);
+  receiptRows=r.data||[];receiptAttachmentRows=[];
+  let txids=receiptRows.map(x=>x.id);
+  if(txids.length){
+    let ri=await sb.from('receipt_items').select('inventory_transaction_id,receipt_id').in('inventory_transaction_id',txids);
+    if(!ri.error&&ri.data?.length){
+      let receiptIds=[...new Set(ri.data.map(x=>x.receipt_id))];
+      let ar=await sb.from('receipt_attachments').select('*').in('receipt_id',receiptIds).order('uploaded_at',{ascending:false});
+      if(!ar.error){
+        receiptAttachmentRows=(ar.data||[]).map(a=>({...a,inventory_transaction_id:ri.data.find(x=>x.receipt_id===a.receipt_id)?.inventory_transaction_id||null}));
+      }
+    }
+  }
+  renderReceiptLog();receiptLogDlg.showModal()
+}
+function filteredReceiptRows(){
+  let s=$('receiptSearch').value.toLowerCase().trim(),d=$('receiptDate').value;
+  return receiptRows.filter(x=>{
+    let ok=!s||[x.parts?.part_number,x.parts?.description,x.reference_number,x.reason,x.received_by_email].join(' ').toLowerCase().includes(s);
+    if(ok&&d)ok=(x.occurred_at||'').slice(0,10)===d;
+    return ok
+  })
+}
+function renderReceiptLog(){
+  let v=filteredReceiptRows();
+  $('receiptLogBody').innerHTML=v.length?v.map(x=>{
+    let atts=receiptAttachmentRows.filter(a=>a.inventory_transaction_id===x.id);
+    let attHtml=atts.length?atts.map(a=>`<button class="small" data-openreceiptatt="${a.id}">${esc(a.file_name)}</button>`).join(' '):'—';
+    return `<tr><td>${dt(x.occurred_at)}</td><td><b>${esc(x.parts?.part_number||'')}</b></td><td>${esc(x.parts?.description||'')}</td><td class="num">${num(x.quantity_delta)}</td><td>${esc(x.reference_number||'—')}</td><td>${esc(x.reason||'—')}</td><td>${esc(x.received_by_email||'—')}</td><td>${attHtml}</td></tr>`
+  }).join(''):'<tr><td colspan="8" class="muted">No matching receipts.</td></tr>';
+  document.querySelectorAll('[data-openreceiptatt]').forEach(b=>b.onclick=()=>openReceiptAttachment(b.dataset.openreceiptatt))
+}
+$('receiptLogBtn').onclick=()=>openReceiptLog(null);
+$('partReceiptBtn').onclick=()=>editingPart&&openReceiptLog(editingPart.id);
+$('receiptSearch').oninput=renderReceiptLog;
+$('receiptDate').onchange=renderReceiptLog;
+$('clearReceiptFiltersBtn').onclick=()=>{$('receiptSearch').value='';$('receiptDate').value='';renderReceiptLog()};
+$('exportReceiptLogBtn').onclick=()=>{
+  let v=filteredReceiptRows(),data=[['Date / Time','Part Number','Description','Quantity Received','PO / Reference','Notes','Received By','Attachments']];
+  for(let x of v){
+    let names=receiptAttachmentRows.filter(a=>a.inventory_transaction_id===x.id).map(a=>a.file_name).join('; ');
+    data.push([dt(x.occurred_at),x.parts?.part_number||'',x.parts?.description||'',num(x.quantity_delta),x.reference_number||'',x.reason||'',x.received_by_email||'',names])
+  }
+  downloadCSV(data,'RIS-receiving-log.csv')
+};
 
-async function openActiveOrders(partId){activeOrderPart=partVM(parts.find(p=>p.id===partId));$('activeOrderTitle').textContent='Active Orders — '+activeOrderPart.part_number;let s=await sb.from('purchase_order_item_status').select('*').eq('part_id',partId).in('purchase_order_status',['submitted','partial']).gt('quantity_outstanding',0).order('ordered_at',{ascending:false});if(s.error)return alert('Could not load order details: '+s.error.message);activeOrderRows=s.data||[];if(!activeOrderRows.length){$('activeOrderList').innerHTML='<p class="muted">No active orders for this part.</p>';activeOrderDlg.showModal();return}let poIds=[...new Set(activeOrderRows.map(x=>x.purchase_order_id))],itemIds=activeOrderRows.map(x=>x.purchase_order_item_id);let [poRes,itemRes,attRes]=await Promise.all([sb.from('purchase_orders').select('id,po_number,status,order_date,expected_date,notes,vendor_id,vendors(name)').in('id',poIds),sb.from('purchase_order_items').select('id,purchase_order_id,unit_cost,notes,expected_date,vendor_eta_text').in('id',itemIds),sb.from('purchase_order_attachments').select('*').in('purchase_order_id',poIds).order('uploaded_at',{ascending:false})]);for(let rr of [poRes,itemRes,attRes])if(rr.error)return alert('Could not load order details: '+rr.error.message);activeOrderPOs=poRes.data||[];activeOrderAttachments=attRes.data||[];let itemMap=Object.fromEntries((itemRes.data||[]).map(x=>[x.id,x]));$('activeOrderList').innerHTML=activeOrderRows.map(x=>{let po=activeOrderPOs.find(p=>p.id===x.purchase_order_id)||{},it=itemMap[x.purchase_order_item_id]||{},atts=activeOrderAttachments.filter(a=>a.purchase_order_id===x.purchase_order_id);return `<div class="card" style="margin:10px 0"><div class="row" style="justify-content:space-between"><div><b>${esc(po.po_number||'Order')}</b> — ${esc(po.vendors?.name||'')}</div><span>${esc(statusLabel(po.status)||po.status||'')}</span></div><div class="grid2" style="margin-top:8px"><div><span class="muted">Ordered</span><br><b>${num(x.quantity_ordered)}</b></div><div><span class="muted">Received</span><br><b>${num(x.quantity_received)}</b></div><div><span class="muted">Outstanding</span><br><b>${num(x.quantity_outstanding)}</b></div><div><span class="muted">Unit Cost</span><br><b>${money(it.unit_cost)}</b></div><div><span class="muted">Order Date</span><br>${esc(po.order_date||'—')}</div><div><span class="muted">ETA</span><br>${esc(it.expected_date||po.expected_date||x.expected_date||'—')}</div></div>${(it.notes||po.notes)?`<p><b>Notes:</b> ${esc(it.notes||po.notes)}</p>`:''}<div style="margin-top:8px"><b>Attachments</b><div>${atts.length?atts.map(a=>`<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:5px 0"><span>${esc(a.file_name)}</span><span><button class="small" data-openatt="${a.id}">Open</button> <button class="small danger" data-delatt="${a.id}">Delete</button></span></div>`).join(''):'<span class="muted"> No attachments</span>'}</div></div><button class="small" data-addatt="${x.purchase_order_id}" style="margin-top:7px">+ Attach Receipt / Document</button></div>`}).join('');document.querySelectorAll('[data-addatt]').forEach(b=>b.onclick=()=>{attachmentPOId=b.dataset.addatt;$('activeOrderFileInput').value='';$('activeOrderFileInput').click()});document.querySelectorAll('[data-openatt]').forEach(b=>b.onclick=()=>openOrderAttachment(b.dataset.openatt));document.querySelectorAll('[data-delatt]').forEach(b=>b.onclick=()=>deleteOrderAttachment(b.dataset.delatt));activeOrderDlg.showModal()}
+
+function openReceiveOrder(itemId){
+  receiveOrderLine=activeOrderRows.find(x=>x.purchase_order_item_id===itemId);
+  if(!receiveOrderLine)return;
+  let po=activeOrderPOs.find(p=>p.id===receiveOrderLine.purchase_order_id)||{};
+  $('receiveOrderSummary').innerHTML=`<p><b>${esc(activeOrderPart.part_number)}</b> — ${esc(activeOrderPart.description)}</p><p>PO: <b>${esc(po.po_number||'')}</b> &nbsp; Outstanding: <b>${num(receiveOrderLine.quantity_outstanding)}</b></p>`;
+  $('receiveOrderQty').value=num(receiveOrderLine.quantity_outstanding);
+  $('receiveOrderPackingSlip').value='';
+  $('receiveOrderNotes').value='';
+  $('receiveOrderFiles').value='';
+  $('receiveOrderPrintBarcode').checked=false;
+  activeOrderDlg.close();
+  receiveOrderDlg.showModal()
+}
+$('saveReceiveOrderBtn').onclick=async()=>{
+  if(!receiveOrderLine)return;
+  let qty=num($('receiveOrderQty').value),doPrint=$('receiveOrderPrintBarcode').checked;
+  let r=await sb.rpc('ris_receive_order_item',{
+    p_purchase_order_item_id:receiveOrderLine.purchase_order_item_id,
+    p_quantity:qty,
+    p_notes:$('receiveOrderNotes').value.trim()||null,
+    p_packing_slip_number:$('receiveOrderPackingSlip').value.trim()||null
+  });
+  if(r.error)return alert('Receive order failed: '+r.error.message);
+  let receiptId=r.data,part=activeOrderPart,poId=receiveOrderLine.purchase_order_id;
+  try{
+    if($('receiveOrderFiles').files.length)await uploadReceiptFiles(receiptId,part.id,poId,$('receiveOrderFiles').files)
+  }catch(e){
+    alert('The order was received into inventory, but the packing-slip attachment failed to upload: '+e.message)
+  }
+  receiveOrderDlg.close();
+  await loadAll();
+  if(doPrint){
+    if(Number.isInteger(qty)&&qty>0)printLabels('PART',part.part_number,part.description,qty,!!part.small_label);
+    else alert('Receipt saved. Barcode labels were not printed because the received quantity is not a whole number.')
+  }
+}
+async function openActiveOrders(partId){activeOrderPart=partVM(parts.find(p=>p.id===partId));$('activeOrderTitle').textContent='Active Orders — '+activeOrderPart.part_number;let s=await sb.from('purchase_order_item_status').select('*').eq('part_id',partId).in('purchase_order_status',['submitted','partial']).gt('quantity_outstanding',0).order('ordered_at',{ascending:false});if(s.error)return alert('Could not load order details: '+s.error.message);activeOrderRows=s.data||[];if(!activeOrderRows.length){$('activeOrderList').innerHTML='<p class="muted">No active orders for this part.</p>';activeOrderDlg.showModal();return}let poIds=[...new Set(activeOrderRows.map(x=>x.purchase_order_id))],itemIds=activeOrderRows.map(x=>x.purchase_order_item_id);let [poRes,itemRes,attRes]=await Promise.all([sb.from('purchase_orders').select('id,po_number,status,order_date,expected_date,notes,vendor_id,vendors(name)').in('id',poIds),sb.from('purchase_order_items').select('id,purchase_order_id,unit_cost,notes,expected_date,vendor_eta_text').in('id',itemIds),sb.from('purchase_order_attachments').select('*').in('purchase_order_id',poIds).order('uploaded_at',{ascending:false})]);for(let rr of [poRes,itemRes,attRes])if(rr.error)return alert('Could not load order details: '+rr.error.message);activeOrderPOs=poRes.data||[];activeOrderAttachments=attRes.data||[];let itemMap=Object.fromEntries((itemRes.data||[]).map(x=>[x.id,x]));$('activeOrderList').innerHTML=activeOrderRows.map(x=>{let po=activeOrderPOs.find(p=>p.id===x.purchase_order_id)||{},it=itemMap[x.purchase_order_item_id]||{},atts=activeOrderAttachments.filter(a=>a.purchase_order_id===x.purchase_order_id);return `<div class="card" style="margin:10px 0"><div class="row" style="justify-content:space-between"><div><b>${esc(po.po_number||'Order')}</b> — ${esc(po.vendors?.name||'')}</div><span>${esc(statusLabel(po.status)||po.status||'')}</span></div><div class="grid2" style="margin-top:8px"><div><span class="muted">Ordered</span><br><b>${num(x.quantity_ordered)}</b></div><div><span class="muted">Received</span><br><b>${num(x.quantity_received)}</b></div><div><span class="muted">Outstanding</span><br><b>${num(x.quantity_outstanding)}</b></div><div><span class="muted">Unit Cost</span><br><b>${money(it.unit_cost)}</b></div><div><span class="muted">Order Date</span><br>${esc(po.order_date||'—')}</div><div><span class="muted">ETA</span><br>${esc(it.expected_date||po.expected_date||x.expected_date||'—')}</div></div>${(it.notes||po.notes)?`<p><b>Notes:</b> ${esc(it.notes||po.notes)}</p>`:''}<div style="margin-top:8px"><b>Attachments</b><div>${atts.length?atts.map(a=>`<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:5px 0"><span>${esc(a.file_name)}</span><span><button class="small" data-openatt="${a.id}">Open</button> <button class="small danger" data-delatt="${a.id}">Delete</button></span></div>`).join(''):'<span class="muted"> No attachments</span>'}</div></div><div class="row" style="margin-top:7px"><button class="small primary" data-receiveorder="${x.purchase_order_item_id}">Receive This Order</button><button class="small" data-addatt="${x.purchase_order_id}">+ Attach Receipt / Document</button></div></div>`}).join('');document.querySelectorAll('[data-receiveorder]').forEach(b=>b.onclick=()=>openReceiveOrder(b.dataset.receiveorder));document.querySelectorAll('[data-addatt]').forEach(b=>b.onclick=()=>{attachmentPOId=b.dataset.addatt;$('activeOrderFileInput').value='';$('activeOrderFileInput').click()});document.querySelectorAll('[data-openatt]').forEach(b=>b.onclick=()=>openOrderAttachment(b.dataset.openatt));document.querySelectorAll('[data-delatt]').forEach(b=>b.onclick=()=>deleteOrderAttachment(b.dataset.delatt));activeOrderDlg.showModal()}
 $('activeOrderFileInput').onchange=async()=>{if(!attachmentPOId||!$('activeOrderFileInput').files.length)return;try{await uploadOrderFiles(attachmentPOId,$('activeOrderFileInput').files);await openActiveOrders(activeOrderPart.id)}catch(e){alert('Attachment upload failed: '+e.message)}};
 async function openOrderAttachment(id){let a=activeOrderAttachments.find(x=>x.id===id);if(!a)return;let r=await sb.storage.from('ris-order-documents').createSignedUrl(a.storage_path,3600);if(r.error)return alert(r.error.message);window.open(r.data.signedUrl,'_blank','noopener')}
 async function deleteOrderAttachment(id){let a=activeOrderAttachments.find(x=>x.id===id);if(!a||!confirm('Delete attachment \"'+a.file_name+'\"?'))return;let d=await sb.from('purchase_order_attachments').delete().eq('id',id);if(d.error)return alert(d.error.message);let s=await sb.storage.from('ris-order-documents').remove([a.storage_path]);if(s.error)alert('Database record deleted, but the stored file could not be removed: '+s.error.message);await openActiveOrders(activeOrderPart.id)}
@@ -324,32 +446,41 @@ function code128(text){
   let E=d.bars.map(b=>`<rect x="${b.x}" y="0" width="${b.w}" height="44"/>`);
   return `<svg class="label-barcode" viewBox="0 0 ${d.total} 44" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${E.join('')}</svg>`
 }
-function askPrint(kind,code,desc){
+function askPrint(kind,code,desc,small=false){
   let q=Math.max(1,num(prompt('How many labels?','1'))||1);
-  printLabels(kind,code,desc,q)
+  printLabels(kind,code,desc,q,small)
 }
-function makeBrotherLabelPdf(code,desc){
+function makeBrotherLabelPdf(code,desc,small=false){
+  if(small){
+    const W=27.94,H=27.94;
+    let doc=new jsPDF({orientation:'portrait',unit:'mm',format:[W,H],compress:true});
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);
+    doc.text(String(code),W/2,4.5,{align:'center'});
+    let d=code128Data(String(code)),usable=24.5,start=(W-usable)/2,scale=usable/d.total,barTop=6.2,barH=10.5;
+    doc.setFillColor(0,0,0);
+    for(let b of d.bars)doc.rect(start+b.x*scale,barTop,b.w*scale,barH,'F');
+    doc.setFont('helvetica','normal');doc.setFontSize(6.5);
+    doc.text(String(code),W/2,19.2,{align:'center'});
+    let name=String(desc||''),nameSize=5.5;doc.setFontSize(nameSize);
+    while(doc.getTextWidth(name)>24&&nameSize>4){nameSize-=.5;doc.setFontSize(nameSize)}
+    doc.text(name,W/2,23.2,{align:'center',maxWidth:24});
+    return doc.output('datauristring').split(',')[1]
+  }
   const W=88.9,H=27.94;
   let doc=new jsPDF({orientation:'landscape',unit:'mm',format:[H,W],compress:true});
   let name=String(desc||''),nameSize=11;
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(nameSize);
-  while(doc.getTextWidth(name)>82&&nameSize>7){
-    nameSize-=.5;
-    doc.setFontSize(nameSize)
-  }
+  doc.setFont('helvetica','bold');doc.setFontSize(nameSize);
+  while(doc.getTextWidth(name)>82&&nameSize>7){nameSize-=.5;doc.setFontSize(nameSize)}
   doc.text(name,W/2,5.3,{align:'center'});
-  doc.setFontSize(12);
-  doc.text(String(code),W/2,10.1,{align:'center'});
+  doc.setFontSize(12);doc.text(String(code),W/2,10.1,{align:'center'});
   let d=code128Data(String(code)),usable=77,start=(W-usable)/2,scale=usable/d.total,barTop=12.0,barH=9.0;
   doc.setFillColor(0,0,0);
   for(let b of d.bars)doc.rect(start+b.x*scale,barTop,b.w*scale,barH,'F');
-  doc.setFont('helvetica','normal');
-  doc.setFontSize(7.5);
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);
   doc.text(String(code),W/2,25.9,{align:'center'});
   return doc.output('datauristring').split(',')[1]
 }
-function brotherDirectPrint(code,desc,q){
+function brotherDirectPrint(code,desc,q,small=false){
   q=Math.max(1,Math.floor(num(q)||1));
   let stamp=Date.now();
   let safeCode=String(code||'label').replace(/[^A-Za-z0-9._-]+/g,'_');
@@ -357,7 +488,7 @@ function brotherDirectPrint(code,desc,q){
   // Smooth Print may reuse a cached attachment when the same filename is sent repeatedly.
   // Give every print job a unique filename so the current RIS label is always loaded.
   p.set('filename',`RIS-${safeCode}-${stamp}.pdf`);
-  p.set('fileattach',makeBrotherLabelPdf(code,desc));
+  p.set('fileattach',makeBrotherLabelPdf(code,desc,small));
   p.set('size','RollW29');
   p.set('copies',String(q));
   p.set('printMode','original');
@@ -366,15 +497,15 @@ function brotherDirectPrint(code,desc,q){
   p.set('jobid',`${safeCode}-${stamp}`);
   window.location.href='brotherwebprint://print?'+p.toString()
 }
-function browserPrintLabels(code,desc,q){
+function browserPrintLabels(code,desc,q,small=false){
   q=Math.max(1,Math.floor(num(q)||1));
   $('printArea').innerHTML=Array.from({length:q},()=>`<div class="labelprint"><div class="label-name">${esc(desc||'')}</div><div class="label-part">${esc(code)}</div>${code128(code)}<div class="label-code">${esc(code)}</div></div>`).join('');
   $('printArea').classList.remove('hidden');
   setTimeout(()=>{window.print();setTimeout(()=>$('printArea').classList.add('hidden'),500)},50)
 }
-function printLabels(kind,code,desc,q){
-  if(/Android/i.test(navigator.userAgent)) brotherDirectPrint(code,desc,q);
-  else browserPrintLabels(code,desc,q)
+function printLabels(kind,code,desc,q,small=false){
+  if(/Android/i.test(navigator.userAgent)) brotherDirectPrint(code,desc,q,small);
+  else browserPrintLabels(code,desc,q,small)
 }
 
 function renderAll(){renderParts();renderUnits();renderTasks();renderTests();renderWiki();if(currentUnit){currentUnit=units.find(x=>x.id===currentUnit.id);if(currentUnit)selectUnit(currentUnit)}}
