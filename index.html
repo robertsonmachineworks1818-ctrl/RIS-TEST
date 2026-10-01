@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#182b3d">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg">
-<title>RIS</title><!-- Consolidated revision batch R-043 through R-057, including small labels, manufacturer barcodes, direct order receiving, packing-slip photos, and safe BOM numbering -->
+<title>RIS</title><!-- Consolidated revision batch R-043 through R-060, including supplier autocomplete, inventory-state filters, and Hardware inventory with photo-based Where Used records -->
 <style>
 :root{--bg:#f3f5f7;--card:#fff;--ink:#17202a;--muted:#68737f;--line:#d7dde4;--accent:#244a73;--soft:#edf2f7;--red:#ffdede;--yellow:#fff2b8;--green:#dcf4df;--purple:#eadcff}
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
@@ -73,15 +73,35 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 <div id="app" class="hidden">
 <div class="tabs">
 <button class="tabbtn active" data-tab="partsTab">Parts Inventory</button>
+<button class="tabbtn" data-tab="hardwareTab">Hardware</button>
 <button class="tabbtn" data-tab="unitsTab">Unit Information</button>
 <button class="tabbtn" data-tab="wikiTab">Instructions & Guidance</button>
 </div>
 <main>
 <section id="partsTab" class="tab active">
 <div class="metrics"><div class="metric"><span>Parts</span><b id="mParts">—</b></div><div class="metric"><span>On hand</span><b id="mHand">—</b></div><div class="metric"><span>Short items</span><b id="mShort">—</b></div><div class="metric"><span>On order</span><b id="mOrder">—</b></div></div>
-<div class="row inventory-legend" style="gap:12px;font-size:12px;margin:2px 0 8px;flex-wrap:wrap"><span><i style="display:inline-block;width:12px;height:12px;background:var(--green);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Enough on hand</span><span><i style="display:inline-block;width:12px;height:12px;background:var(--purple);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Covered by incoming order</span><span><i style="display:inline-block;width:12px;height:12px;background:var(--yellow);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Some stock, still short</span><span><i style="display:inline-block;width:12px;height:12px;background:var(--red);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> No stock / insufficient incoming</span></div>
+<div class="row inventory-legend" style="gap:12px;font-size:12px;margin:2px 0 8px;flex-wrap:wrap">
+<label><input id="filtGreen" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--green);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Enough on hand</label>
+<label><input id="filtPurple" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--purple);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Covered by incoming order</label>
+<label><input id="filtYellow" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--yellow);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Some stock, still short</label>
+<label><input id="filtRed" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--red);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> No stock / insufficient incoming</label>
+<button class="small" id="allStatesBtn">All</button>
+</div>
 <div class="toolbar"><input id="search" placeholder="Search parts…" size="30"><label>Units in run <input id="runUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addPartBtn">+ Add Part</button><button id="receiptLogBtn">Receiving Log</button><button id="exportPartsBtn">Export</button><button id="refreshBtn">Refresh</button></div>
 <div class="tablewrap"><table><thead><tr><th class="sortable" data-sort="part_number">Part</th><th class="sortable" data-sort="description">Description</th><th class="sortable" data-sort="vendor">Supplier</th><th>Link</th><th class="sortable num" data-sort="cost">Cost</th><th class="sortable num" data-sort="retail">Retail</th><th class="sortable num" data-sort="markup">Markup</th><th class="sortable num" data-sort="on_hand">On Hand</th><th class="sortable num" data-sort="needed"># Needed/Unit</th><th class="sortable num" data-sort="remaining">Required</th><th class="sortable num" data-sort="on_order">On Order</th><th>Actions</th></tr></thead><tbody id="partsBody"></tbody></table></div>
+</section>
+
+<section id="hardwareTab" class="tab">
+<div class="metrics"><div class="metric"><span>Hardware items</span><b id="hwParts">—</b></div><div class="metric"><span>On hand</span><b id="hwHand">—</b></div><div class="metric"><span>Short items</span><b id="hwShort">—</b></div><div class="metric"><span>On order</span><b id="hwOrder">—</b></div></div>
+<div class="row inventory-legend" style="gap:12px;font-size:12px;margin:2px 0 8px;flex-wrap:wrap">
+<label><input id="hwFiltGreen" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--green);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Enough on hand</label>
+<label><input id="hwFiltPurple" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--purple);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Covered by incoming order</label>
+<label><input id="hwFiltYellow" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--yellow);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Some stock, still short</label>
+<label><input id="hwFiltRed" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--red);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> No stock / insufficient incoming</label>
+<button class="small" id="hwAllStatesBtn">All</button>
+</div>
+<div class="toolbar"><input id="hardwareSearch" placeholder="Search hardware…" size="30"><label>Units in run <input id="hardwareRunUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addHardwareBtn">+ Add Hardware</button><button id="hardwareReceiptLogBtn">Receiving Log</button><button id="hardwareRefreshBtn">Refresh</button></div>
+<div class="tablewrap"><table><thead><tr><th class="hwsortable" data-sort="part_number">Part</th><th class="hwsortable" data-sort="description">Description</th><th class="hwsortable" data-sort="vendor">Supplier</th><th>Link</th><th class="hwsortable num" data-sort="cost">Cost</th><th class="hwsortable num" data-sort="on_hand">On Hand</th><th class="hwsortable num" data-sort="needed"># Needed/Unit</th><th class="hwsortable num" data-sort="remaining">Required</th><th class="hwsortable num" data-sort="on_order">On Order</th><th>Actions</th></tr></thead><tbody id="hardwareBody"></tbody></table></div>
 </section>
 
 <section id="unitsTab" class="tab">
@@ -113,11 +133,25 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 </div>
 
 <dialog id="partDlg"><h2 id="partDlgTitle">Part</h2><form method="dialog" class="grid">
-<label class="wide">Description<input id="fDesc"></label><label>Category<input id="fCat"></label><label>Manufacturer<input id="fMfr"></label><label>Manufacturer P/N<input id="fMpn"></label><label>Manufacturer Barcode<input id="fMfrBarcode"></label><label>Supplier<input id="fVendor"></label><label>Supplier P/N<input id="fVpn"></label><label class="wide">Supplier product page<input id="fUrl"></label><label>Purchase Cost<input id="fCost" type="number" step=".01"></label><label>Retail Price<input id="fRetail" type="number" step=".01"></label><label>Markup %<input id="fMarkup" type="number" step=".01"></label><label># Needed/Unit<input id="fNeeded" type="number" step=".01" min="0"></label>
+<label class="wide">Description<input id="fDesc"></label><label>Inventory Section<select id="fItemType"><option value="part">Parts Inventory</option><option value="hardware">Hardware</option></select></label><label>Category<input id="fCat"></label><label>Manufacturer<input id="fMfr"></label><label>Manufacturer P/N<input id="fMpn"></label><label>Manufacturer Barcode<input id="fMfrBarcode"></label><label>Supplier<input id="fVendor" list="vendorList" autocomplete="off"></label><label>Supplier P/N<input id="fVpn"></label><label class="wide">Supplier product page<input id="fUrl"></label><label>Purchase Cost<input id="fCost" type="number" step=".01"></label><label>Retail Price<input id="fRetail" type="number" step=".01"></label><label>Markup %<input id="fMarkup" type="number" step=".01"></label><label># Needed/Unit<input id="fNeeded" type="number" step=".01" min="0"></label>
 <label>Total On Hand<input id="fOnHand" type="number" step=".01" min="0"></label><label>Adjustment Reason<input id="fAdjustReason" placeholder="Optional — count correction, damaged stock, etc."></label>
 <label>Print label after save?<select id="fPrint"><option value="no">No</option><option value="yes">Yes</option></select></label><label>Labels<input id="fPrintQty" type="number" min="1" value="1"></label><label style="display:flex;align-items:center;gap:8px"><input id="fSmallLabel" type="checkbox" style="width:auto"> Small label (1.1" × 1.1")</label><label class="wide">Notes<textarea id="fNotes"></textarea></label>
 <div id="partHistoryRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" id="partReceiptBtn">Receipt History</button></div><div id="partDangerRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" class="warn" id="deactivatePartBtn">Deactivate Part</button><button type="button" class="danger" id="deletePartBtn">Delete Part</button></div>
 <div class="wide row" style="justify-content:flex-end"><button value="cancel">Cancel</button><button type="button" class="primary" id="savePartBtn">Save</button></div></form></dialog>
+<datalist id="vendorList"></datalist>
+
+
+<dialog id="whereUsedDlg" style="max-width:900px"><h2 id="whereUsedTitle">Where Used</h2>
+<div id="whereUsedList"></div>
+<hr>
+<h3>Add Location / Use</h3>
+<div class="grid">
+<label class="wide">Location / Description<input id="whereUsedName" placeholder="Example: Upper hydraulic valve bracket"></label>
+<label class="wide">Notes<textarea id="whereUsedNotes" rows="3" placeholder="Optional details"></textarea></label>
+<label class="wide">Photos<input id="whereUsedPhotos" type="file" multiple accept="image/*" capture="environment"></label>
+</div>
+<div class="row" style="justify-content:flex-end;margin-top:10px"><button onclick="whereUsedDlg.close()">Close</button><button class="primary" id="saveWhereUsedBtn">Add Where Used</button></div>
+</dialog>
 
 <dialog id="receiveDlg"><h2>Receive Part</h2><div id="receivePartName"></div><label>Quantity<input id="receiveQty" type="number" min=".01" step=".01" value="1"></label><label>PO / Reference<input id="receiveRef" placeholder="Enter PO number to reduce On Order"></label><label>Notes<textarea id="receiveNotes"></textarea></label><label style="display:flex;align-items:center;gap:8px"><input id="receivePrintBarcode" type="checkbox" style="width:auto"> Print barcode labels</label><div class="row" style="justify-content:flex-end"><button onclick="receiveDlg.close()">Cancel</button><button class="primary" id="receiveSaveBtn">Receive</button></div></dialog>
 
@@ -139,7 +173,7 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 <form class="grid" method="dialog">
 <label>Quantity Ordered<input id="orderQty" type="number" min=".01" step=".01" value="1"></label>
 <label>PO / Reference<input id="orderPO" placeholder="e.g. PO-12345"></label>
-<label>Vendor<input id="orderVendor"></label>
+<label>Vendor<input id="orderVendor" list="vendorList" autocomplete="off"></label>
 <label>Unit Cost<input id="orderCost" type="number" min="0" step=".01"></label>
 <label>Order Date<input id="orderDate" type="date"></label>
 <label>Expected Date / ETA<input id="orderETA" type="date"></label>
@@ -176,7 +210,7 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {jsPDF} from 'https://esm.sh/jspdf@2.5.2';
 const sb=createClient('https://coskdrjelwqpdtrzawnu.supabase.co','sb_publishable_Q2bRyeTaGgcVfUn9uP7YsA_zN03UPsH');
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),num=v=>Number(v||0),money=v=>v==null?'—':'$'+num(v).toFixed(2),dt=v=>v?new Date(v).toLocaleString():'—';
-let parts=[],units=[],tasks=[],tests=[],wiki=[],bomItems=[],suppliers=[],supply=[],currentUnit=null,editingPart=null,receivePart=null,orderPart=null,receiveOrderLine=null,receiptFilterPart=null,receiptRows=[],receiptAttachmentRows=[],activeOrderPart=null,activeOrderRows=[],activeOrderPOs=[],activeOrderAttachments=[],attachmentPOId=null,editingWiki=null,editingHistory=null,sortKey='part_number',sortDir=1,calcLock=false;
+let parts=[],units=[],tasks=[],tests=[],wiki=[],bomItems=[],suppliers=[],vendors=[],supply=[],currentUnit=null,editingPart=null,receivePart=null,orderPart=null,receiveOrderLine=null,receiptFilterPart=null,receiptRows=[],receiptAttachmentRows=[],activeOrderPart=null,activeOrderRows=[],activeOrderPOs=[],activeOrderAttachments=[],attachmentPOId=null,editingWiki=null,editingHistory=null,currentHardware=null,whereUsedRows=[],whereUsedPhotos=[],sortKey='part_number',sortDir=1,hwSortKey='part_number',hwSortDir=1,calcLock=false;
 
 function msg(x){$('authMsg').textContent=x||''}
 async function authState(){let{data:{session}}=await sb.auth.getSession();let on=!!session;$('authBox').classList.toggle('hidden',on);$('app').classList.toggle('hidden',!on);$('logoutBtn').classList.toggle('hidden',!on);$('userEmail').textContent=on?session.user.email:'';if(on)await loadAll()}
@@ -185,7 +219,7 @@ $('signUpBtn').onclick=async()=>{msg('Creating account…');let{error}=await sb.
 $('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};authState();
 
 async function loadAll(){try{
-let [a,b,c,d,e,f,g,h]=await Promise.all([
+let [a,b,c,d,e,f,g,h,i]=await Promise.all([
 sb.from('parts').select('*').eq('active',true),
 sb.from('part_supply_status').select('*'),
 sb.from('part_vendors').select('*,vendors(name)').eq('active',true),
@@ -193,31 +227,125 @@ sb.from('bom_items').select('*'),
 sb.from('machines').select('*').eq('active',true).order('created_at',{ascending:false}),
 sb.from('assembly_task_definitions').select('*').eq('active',true).order('sort_order'),
 sb.from('test_definitions').select('*').eq('active',true).order('sort_order'),
-sb.from('instruction_pages').select('*').eq('active',true).order('sort_order')
-]);for(let r of[a,b,c,d,e,f,g,h])if(r.error)throw r.error;
-parts=a.data;supply=b.data;suppliers=c.data;bomItems=d.data;units=e.data;tasks=f.data;tests=g.data;wiki=h.data;renderAll()
+sb.from('instruction_pages').select('*').eq('active',true).order('sort_order'),
+sb.from('vendors').select('id,name').order('name')
+]);for(let r of[a,b,c,d,e,f,g,h,i])if(r.error)throw r.error;
+parts=a.data;supply=b.data;suppliers=c.data;bomItems=d.data;units=e.data;tasks=f.data;tests=g.data;wiki=h.data;vendors=i.data||[];$('vendorList').innerHTML=vendors.map(v=>`<option value="${esc(v.name)}"></option>`).join('');renderAll()
 }catch(e){alert('RIS load error: '+e.message)}}
 $('refreshBtn').onclick=loadAll;
 
-function partVM(p){let s=supply.find(x=>x.part_id===p.id)||{},pv=[...suppliers.filter(x=>x.part_id===p.id)].sort((a,b)=>num(a.supplier_rank||99)-num(b.supplier_rank||99))[0],bi=bomItems.find(x=>x.part_id===p.id),unitsIn=Math.max(1,num($('runUnits').value)||1),needed=num(bi?.quantity_required),required=needed*unitsIn;return{...p,vendor:pv?.vendors?.name||'',vendorPart:pv?.vendor_part_number||'',url:p.product_url||pv?.purchase_url||'',cost:p.last_purchase_cost??pv?.unit_cost,retail:p.retail_price,markup:p.markup_percent,on_hand:num(s.quantity_on_hand),on_order:num(s.quantity_on_order),needed,remaining:required,pv,bi}}
+function partVM(p,unitsOverride=null){let s=supply.find(x=>x.part_id===p.id)||{},pv=[...suppliers.filter(x=>x.part_id===p.id)].sort((a,b)=>num(a.supplier_rank||99)-num(b.supplier_rank||99))[0],bi=bomItems.find(x=>x.part_id===p.id),unitsIn=unitsOverride??Math.max(1,num($('runUnits').value)||1),needed=num(bi?.quantity_required),required=needed*unitsIn;return{...p,vendor:pv?.vendors?.name||'',vendorPart:pv?.vendor_part_number||'',url:p.product_url||pv?.purchase_url||'',cost:p.last_purchase_cost??pv?.unit_cost,retail:p.retail_price,markup:p.markup_percent,on_hand:num(s.quantity_on_hand),on_order:num(s.quantity_on_order),needed,remaining:required,pv,bi}}
 function cmp(a,b,k){let av=a[k],bv=b[k];if(typeof av==='number'||typeof bv==='number')return(num(av)-num(bv))*sortDir;return String(av??'').localeCompare(String(bv??''))*sortDir}
 function stockClass(x){if(x.on_hand>=x.remaining)return'stock-green';if(x.on_hand+x.on_order>=x.remaining&&x.remaining>0)return'stock-purple';if(x.on_hand>0)return'stock-yellow';return'stock-red'}
-function renderParts(){let q=$('search').value.toLowerCase(),v=parts.map(partVM).filter(x=>[x.part_number,x.description,x.vendor,x.manufacturer,x.manufacturer_part_number,x.manufacturer_barcode].join(' ').toLowerCase().includes(q));v.sort((a,b)=>cmp(a,b,sortKey));$('partsBody').innerHTML=v.map(x=>`<tr class="${stockClass(x)}"><td><b>${esc(x.part_number)}</b></td><td>${esc(x.description)}</td><td>${esc(x.vendor)||'—'}</td><td>${x.url?`<a target="_blank" rel="noopener" href="${esc(x.url)}">View Part</a>`:'—'}</td><td class="num">${money(x.cost)}</td><td class="num">${money(x.retail)}</td><td class="num">${x.markup==null?'—':num(x.markup).toFixed(1)+'%'}</td><td class="num">${x.on_hand}</td><td class="num">${x.needed}</td><td class="num">${x.remaining}</td><td class="num">${x.on_order}</td><td class="actions"><button class="small" data-order="${x.id}">Add Order</button>${x.on_order>0?`<button class="small" data-activeorder="${x.id}">On Order: ${x.on_order}</button>`:""}<button class="small" data-rec="${x.id}">Receive</button><button class="small" data-edit="${x.id}">Edit</button><button class="small" data-label="${x.id}">Print Label</button></td></tr>`).join('');
-$('mParts').textContent=parts.length;$('mHand').textContent=supply.reduce((a,x)=>a+num(x.quantity_on_hand),0);$('mShort').textContent=v.filter(x=>x.on_hand<x.remaining).length;$('mOrder').textContent=supply.reduce((a,x)=>a+num(x.quantity_on_order),0);
-document.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>openOrder(b.dataset.order));document.querySelectorAll('[data-activeorder]').forEach(b=>b.onclick=()=>openActiveOrders(b.dataset.activeorder));document.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>openReceive(b.dataset.rec));document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openPart(b.dataset.edit));document.querySelectorAll('[data-label]').forEach(b=>b.onclick=()=>{let x=partVM(parts.find(p=>p.id===b.dataset.label));askPrint('PART',x.part_number,x.description,x.small_label)})}
+function stateAllowed(x,prefix=''){
+  let c=stockClass(x);
+  let map={'stock-green':'Green','stock-purple':'Purple','stock-yellow':'Yellow','stock-red':'Red'};
+  let el=$(prefix+'filt'+map[c]);
+  return !el||el.checked
+}
+function renderParts(){
+  let q=$('search').value.toLowerCase(),base=parts.filter(p=>(p.item_type||'part')!=='hardware');
+  let v=base.map(p=>partVM(p)).filter(x=>[x.part_number,x.description,x.vendor,x.manufacturer,x.manufacturer_part_number,x.manufacturer_barcode].join(' ').toLowerCase().includes(q)&&stateAllowed(x));
+  v.sort((a,b)=>cmp(a,b,sortKey));
+  $('partsBody').innerHTML=v.map(x=>`<tr class="${stockClass(x)}"><td><b>${esc(x.part_number)}</b></td><td>${esc(x.description)}</td><td>${esc(x.vendor)||'—'}</td><td>${x.url?`<a target="_blank" rel="noopener" href="${esc(x.url)}">View Part</a>`:'—'}</td><td class="num">${money(x.cost)}</td><td class="num">${money(x.retail)}</td><td class="num">${x.markup==null?'—':num(x.markup).toFixed(1)+'%'}</td><td class="num">${x.on_hand}</td><td class="num">${x.needed}</td><td class="num">${x.remaining}</td><td class="num">${x.on_order}</td><td class="actions"><button class="small" data-order="${x.id}">Add Order</button>${x.on_order>0?`<button class="small" data-activeorder="${x.id}">On Order: ${x.on_order}</button>`:""}<button class="small" data-rec="${x.id}">Receive</button><button class="small" data-edit="${x.id}">Edit</button><button class="small" data-label="${x.id}">Print Label</button></td></tr>`).join('');
+  $('mParts').textContent=base.length;$('mHand').textContent=base.reduce((a,p)=>a+num((supply.find(x=>x.part_id===p.id)||{}).quantity_on_hand),0);$('mShort').textContent=base.map(p=>partVM(p)).filter(x=>x.on_hand<x.remaining).length;$('mOrder').textContent=base.reduce((a,p)=>a+num((supply.find(x=>x.part_id===p.id)||{}).quantity_on_order),0);
+  document.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>openOrder(b.dataset.order));document.querySelectorAll('[data-activeorder]').forEach(b=>b.onclick=()=>openActiveOrders(b.dataset.activeorder));document.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>openReceive(b.dataset.rec));document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openPart(b.dataset.edit));document.querySelectorAll('[data-label]').forEach(b=>b.onclick=()=>{let x=partVM(parts.find(p=>p.id===b.dataset.label));askPrint('PART',x.part_number,x.description,x.small_label)})
+}
 document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{let k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1}renderParts()});$('search').oninput=renderParts;$('runUnits').oninput=renderParts;
+['filtGreen','filtPurple','filtYellow','filtRed'].forEach(id=>$(id).onchange=renderParts);
+$('allStatesBtn').onclick=()=>{['filtGreen','filtPurple','filtYellow','filtRed'].forEach(id=>$(id).checked=true);renderParts()};
+
+
+function hwCmp(a,b,k){let av=a[k],bv=b[k];if(typeof av==='number'||typeof bv==='number')return(num(av)-num(bv))*hwSortDir;return String(av??'').localeCompare(String(bv??''))*hwSortDir}
+function renderHardware(){
+  let q=$('hardwareSearch').value.toLowerCase(),unitsIn=Math.max(1,num($('hardwareRunUnits').value)||1),base=parts.filter(p=>(p.item_type||'part')==='hardware');
+  let v=base.map(p=>partVM(p,unitsIn)).filter(x=>[x.part_number,x.description,x.vendor,x.manufacturer,x.manufacturer_part_number,x.manufacturer_barcode].join(' ').toLowerCase().includes(q)&&stateAllowed(x,'hw'));
+  v.sort((a,b)=>hwCmp(a,b,hwSortKey));
+  $('hardwareBody').innerHTML=v.map(x=>`<tr class="${stockClass(x)}"><td><b>${esc(x.part_number)}</b></td><td>${esc(x.description)}</td><td>${esc(x.vendor)||'—'}</td><td>${x.url?`<a target="_blank" rel="noopener" href="${esc(x.url)}">View Part</a>`:'—'}</td><td class="num">${money(x.cost)}</td><td class="num">${x.on_hand}</td><td class="num">${x.needed}</td><td class="num">${x.remaining}</td><td class="num">${x.on_order}</td><td class="actions"><button class="small primary" data-whereused="${x.id}">Where Used</button><button class="small" data-hworder="${x.id}">Add Order</button>${x.on_order>0?`<button class="small" data-hwactiveorder="${x.id}">On Order: ${x.on_order}</button>`:""}<button class="small" data-hwrec="${x.id}">Receive</button><button class="small" data-hwedit="${x.id}">Edit</button><button class="small" data-hwlabel="${x.id}">Print Label</button></td></tr>`).join('');
+  $('hwParts').textContent=base.length;$('hwHand').textContent=base.reduce((a,p)=>a+num((supply.find(x=>x.part_id===p.id)||{}).quantity_on_hand),0);$('hwShort').textContent=base.map(p=>partVM(p,unitsIn)).filter(x=>x.on_hand<x.remaining).length;$('hwOrder').textContent=base.reduce((a,p)=>a+num((supply.find(x=>x.part_id===p.id)||{}).quantity_on_order),0);
+  document.querySelectorAll('[data-whereused]').forEach(b=>b.onclick=()=>openWhereUsed(b.dataset.whereused));
+  document.querySelectorAll('[data-hworder]').forEach(b=>b.onclick=()=>openOrder(b.dataset.hworder));
+  document.querySelectorAll('[data-hwactiveorder]').forEach(b=>b.onclick=()=>openActiveOrders(b.dataset.hwactiveorder));
+  document.querySelectorAll('[data-hwrec]').forEach(b=>b.onclick=()=>openReceive(b.dataset.hwrec));
+  document.querySelectorAll('[data-hwedit]').forEach(b=>b.onclick=()=>openPart(b.dataset.hwedit));
+  document.querySelectorAll('[data-hwlabel]').forEach(b=>b.onclick=()=>{let x=partVM(parts.find(p=>p.id===b.dataset.hwlabel));askPrint('PART',x.part_number,x.description,x.small_label)})
+}
+document.querySelectorAll('th.hwsortable').forEach(th=>th.onclick=()=>{let k=th.dataset.sort;if(hwSortKey===k)hwSortDir*=-1;else{hwSortKey=k;hwSortDir=1}renderHardware()});
+$('hardwareSearch').oninput=renderHardware;$('hardwareRunUnits').oninput=renderHardware;
+['hwFiltGreen','hwFiltPurple','hwFiltYellow','hwFiltRed'].forEach(id=>$(id).onchange=renderHardware);
+$('hwAllStatesBtn').onclick=()=>{['hwFiltGreen','hwFiltPurple','hwFiltYellow','hwFiltRed'].forEach(id=>$(id).checked=true);renderHardware()};
+$('addHardwareBtn').onclick=()=>{openPart(null);$('fItemType').value='hardware';$('partDlgTitle').textContent='Add Hardware'};
+$('hardwareReceiptLogBtn').onclick=()=>openReceiptLog(null);
+$('hardwareRefreshBtn').onclick=loadAll;
+
+async function loadWhereUsed(){
+  if(!currentHardware)return;
+  let r=await sb.from('hardware_where_used').select('*').eq('part_id',currentHardware.id).order('sort_order').order('created_at');
+  if(r.error)return alert('Could not load where-used records: '+r.error.message);
+  whereUsedRows=r.data||[];whereUsedPhotos=[];
+  let ids=whereUsedRows.map(x=>x.id);
+  if(ids.length){
+    let p=await sb.from('hardware_where_used_photos').select('*').in('where_used_id',ids).order('uploaded_at');
+    if(p.error)return alert('Could not load where-used photos: '+p.error.message);
+    whereUsedPhotos=p.data||[]
+  }
+  renderWhereUsed()
+}
+function renderWhereUsed(){
+  $('whereUsedList').innerHTML=whereUsedRows.length?whereUsedRows.map(w=>{
+    let photos=whereUsedPhotos.filter(p=>p.where_used_id===w.id);
+    return `<div class="card" style="margin:8px 0"><div class="row" style="justify-content:space-between"><div><b>${esc(w.title)}</b>${w.notes?`<div class="muted">${esc(w.notes)}</div>`:''}</div><button class="small danger" data-delwhere="${w.id}">Delete</button></div><div class="row" style="margin-top:8px">${photos.length?photos.map(p=>`<button class="small" data-openhwphoto="${p.id}">${esc(p.file_name)}</button>`).join(''):'<span class="muted">No photos</span>'}</div></div>`
+  }).join(''):'<p class="muted">No where-used locations have been added yet.</p>';
+  document.querySelectorAll('[data-openhwphoto]').forEach(b=>b.onclick=()=>openHardwarePhoto(b.dataset.openhwphoto));
+  document.querySelectorAll('[data-delwhere]').forEach(b=>b.onclick=()=>deleteWhereUsed(b.dataset.delwhere))
+}
+async function openWhereUsed(partId){
+  currentHardware=partVM(parts.find(p=>p.id===partId));
+  $('whereUsedTitle').textContent='Where Used — '+currentHardware.part_number+' — '+currentHardware.description;
+  $('whereUsedName').value='';$('whereUsedNotes').value='';$('whereUsedPhotos').value='';
+  await loadWhereUsed();whereUsedDlg.showModal()
+}
+async function uploadHardwarePhotos(whereUsedId,fileList){
+  for(let f of Array.from(fileList||[])){
+    if(f.size>20*1024*1024)throw new Error(`${f.name} is larger than the 20 MB photo limit.`);
+    let path=`${currentHardware.id}/${whereUsedId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${safeFileName(f.name)}`;
+    let up=await sb.storage.from('ris-hardware-photos').upload(path,f,{cacheControl:'3600',upsert:false,contentType:f.type||undefined});if(up.error)throw up.error;
+    let ins=await sb.from('hardware_where_used_photos').insert({where_used_id:whereUsedId,file_name:f.name,storage_path:path,mime_type:f.type||null,size_bytes:f.size});
+    if(ins.error){await sb.storage.from('ris-hardware-photos').remove([path]);throw ins.error}
+  }
+}
+$('saveWhereUsedBtn').onclick=async()=>{
+  if(!currentHardware)return;
+  let title=$('whereUsedName').value.trim();if(!title)return alert('Enter a location or description for where this hardware is used.');
+  let r=await sb.from('hardware_where_used').insert({part_id:currentHardware.id,title,notes:$('whereUsedNotes').value.trim()||null}).select('id').single();
+  if(r.error)return alert('Could not save where-used record: '+r.error.message);
+  try{if($('whereUsedPhotos').files.length)await uploadHardwarePhotos(r.data.id,$('whereUsedPhotos').files)}catch(e){alert('The where-used record was saved, but a photo failed to upload: '+e.message)}
+  $('whereUsedName').value='';$('whereUsedNotes').value='';$('whereUsedPhotos').value='';await loadWhereUsed()
+};
+async function openHardwarePhoto(id){
+  let p=whereUsedPhotos.find(x=>x.id===id);if(!p)return;
+  let r=await sb.storage.from('ris-hardware-photos').createSignedUrl(p.storage_path,3600);if(r.error)return alert(r.error.message);
+  window.open(r.data.signedUrl,'_blank','noopener')
+}
+async function deleteWhereUsed(id){
+  let w=whereUsedRows.find(x=>x.id===id);if(!w||!confirm(`Delete where-used record "${w.title}" and its photos?`))return;
+  let photos=whereUsedPhotos.filter(p=>p.where_used_id===id);
+  if(photos.length){let s=await sb.storage.from('ris-hardware-photos').remove(photos.map(p=>p.storage_path));if(s.error)return alert('Could not delete stored photos: '+s.error.message)}
+  let d=await sb.from('hardware_where_used').delete().eq('id',id);if(d.error)return alert(d.error.message);
+  await loadWhereUsed()
+}
 
 $('addPartBtn').onclick=()=>openPart(null);
-function openPart(id){editingPart=id?partVM(parts.find(p=>p.id===id)):null;$('partDlgTitle').textContent=id?'Edit '+editingPart.part_number:'Add Part';let x=editingPart||{};$('fDesc').value=x.description||'';$('fCat').value=x.category||'';$('fMfr').value=x.manufacturer||'';$('fMpn').value=x.manufacturer_part_number||'';$('fMfrBarcode').value=x.manufacturer_barcode||'';$('fSmallLabel').checked=!!x.small_label;$('fVendor').value=x.vendor||'';$('fVpn').value=x.vendorPart||'';$('fUrl').value=x.url||'';$('fCost').value=x.cost??'';$('fRetail').value=x.retail??'';$('fMarkup').value=x.markup??'';$('fNeeded').value=x.needed??1;$('fOnHand').value=x.on_hand??0;$('fAdjustReason').value='';$('fNotes').value=x.notes||'';$('fPrint').value='no';$('fPrintQty').value=1;$('partDangerRow').classList.toggle('hidden',!id);$('partHistoryRow').classList.toggle('hidden',!id);partDlg.showModal()}
+function openPart(id){editingPart=id?partVM(parts.find(p=>p.id===id)):null;$('partDlgTitle').textContent=id?'Edit '+editingPart.part_number:'Add Part';let x=editingPart||{};$('fDesc').value=x.description||'';$('fItemType').value=x.item_type||'part';$('fCat').value=x.category||'';$('fMfr').value=x.manufacturer||'';$('fMpn').value=x.manufacturer_part_number||'';$('fMfrBarcode').value=x.manufacturer_barcode||'';$('fSmallLabel').checked=!!x.small_label;$('fVendor').value=x.vendor||'';$('fVpn').value=x.vendorPart||'';$('fUrl').value=x.url||'';$('fCost').value=x.cost??'';$('fRetail').value=x.retail??'';$('fMarkup').value=x.markup??'';$('fNeeded').value=x.needed??1;$('fOnHand').value=x.on_hand??0;$('fAdjustReason').value='';$('fNotes').value=x.notes||'';$('fPrint').value='no';$('fPrintQty').value=1;$('partDangerRow').classList.toggle('hidden',!id);$('partHistoryRow').classList.toggle('hidden',!id);partDlg.showModal()}
 partDlg.querySelector('form').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='BUTTON'){e.preventDefault();e.stopPropagation()}});
 $('fMarkup').oninput=()=>{if(calcLock)return;calcLock=true;let c=num($('fCost').value),m=num($('fMarkup').value);if($('fMarkup').value!==''&&c>=0)$('fRetail').value=(c*(1+m/100)).toFixed(2);calcLock=false};
 $('fRetail').oninput=()=>{if(calcLock)return;calcLock=true;let c=num($('fCost').value),r=num($('fRetail').value);if(c>0&&$('fRetail').value!=='')$('fMarkup').value=(((r-c)/c)*100).toFixed(2);calcLock=false};
 
 $('savePartBtn').onclick=async()=>{try{
-let payload={description:$('fDesc').value.trim(),category:$('fCat').value.trim()||null,manufacturer:$('fMfr').value.trim()||null,manufacturer_part_number:$('fMpn').value.trim()||null,manufacturer_barcode:$('fMfrBarcode').value.trim()||null,small_label:$('fSmallLabel').checked,last_purchase_cost:$('fCost').value===''?null:num($('fCost').value),retail_price:$('fRetail').value===''?null:num($('fRetail').value),markup_percent:$('fMarkup').value===''?null:num($('fMarkup').value),notes:$('fNotes').value.trim()||null,product_url:$('fUrl').value.trim()||null};
+let payload={description:$('fDesc').value.trim(),item_type:$('fItemType').value||'part',category:$('fCat').value.trim()||null,manufacturer:$('fMfr').value.trim()||null,manufacturer_part_number:$('fMpn').value.trim()||null,manufacturer_barcode:$('fMfrBarcode').value.trim()||null,small_label:$('fSmallLabel').checked,last_purchase_cost:$('fCost').value===''?null:num($('fCost').value),retail_price:$('fRetail').value===''?null:num($('fRetail').value),markup_percent:$('fMarkup').value===''?null:num($('fMarkup').value),notes:$('fNotes').value.trim()||null,product_url:$('fUrl').value.trim()||null};
 let part;if(editingPart){let r=await sb.from('parts').update(payload).eq('id',editingPart.id).select().single();if(r.error)throw r.error;part=r.data}else{payload.part_number='';payload.barcode_value='';let r=await sb.from('parts').insert(payload).select().single();if(r.error)throw r.error;part=r.data}
 let need=num($('fNeeded').value);let bomr=await sb.rpc('ris_set_bom_requirement',{p_part_id:part.id,p_quantity:need,p_bom_revision_id:null});if(bomr.error)throw bomr.error
-let vn=$('fVendor').value.trim();if(vn){let vr=await sb.from('vendors').select('id,name').ilike('name',vn).limit(1),vid=vr.data?.[0]?.id;if(!vid){let ins=await sb.from('vendors').insert({name:vn}).select('id').single();if(ins.error)throw ins.error;vid=ins.data.id}let pvs=await sb.from('part_vendors').select('id').eq('part_id',part.id).order('supplier_rank',{ascending:true}).limit(1);let pp={part_id:part.id,vendor_id:vid,vendor_part_number:$('fVpn').value.trim()||null,unit_cost:$('fCost').value===''?null:num($('fCost').value),purchase_url:$('fUrl').value.trim()||null,supplier_rank:1,active:true};let rr=pvs.data?.length?await sb.from('part_vendors').update(pp).eq('id',pvs.data[0].id):await sb.from('part_vendors').insert(pp);if(rr.error)throw rr.error}
+let vn=$('fVendor').value.trim();if(vn){let match=vendors.find(v=>v.name.toLowerCase()===vn.toLowerCase()),vid=match?.id;if(!vid){let vr=await sb.from('vendors').select('id,name').ilike('name',vn).limit(1);vid=vr.data?.[0]?.id}if(!vid){let ins=await sb.from('vendors').insert({name:vn}).select('id').single();if(ins.error)throw ins.error;vid=ins.data.id}let pvs=await sb.from('part_vendors').select('id').eq('part_id',part.id).order('supplier_rank',{ascending:true}).limit(1);let pp={part_id:part.id,vendor_id:vid,vendor_part_number:$('fVpn').value.trim()||null,unit_cost:$('fCost').value===''?null:num($('fCost').value),purchase_url:$('fUrl').value.trim()||null,supplier_rank:1,active:true};let rr=pvs.data?.length?await sb.from('part_vendors').update(pp).eq('id',pvs.data[0].id):await sb.from('part_vendors').insert(pp);if(rr.error)throw rr.error}
 let ar=await sb.rpc('ris_set_total_on_hand',{p_part_id:part.id,p_target_quantity:num($('fOnHand').value),p_reason:$('fAdjustReason').value.trim()||null});if(ar.error)throw ar.error;
 let pr=$('fPrint').value==='yes',pq=Math.max(1,num($('fPrintQty').value)||1);partDlg.close();await loadAll();if(pr)printLabels('PART',part.part_number,part.description,pq,!!part.small_label)
 }catch(e){alert('Save failed: '+e.message)}};
@@ -508,7 +636,7 @@ function printLabels(kind,code,desc,q,small=false){
   else browserPrintLabels(code,desc,q,small)
 }
 
-function renderAll(){renderParts();renderUnits();renderTasks();renderTests();renderWiki();if(currentUnit){currentUnit=units.find(x=>x.id===currentUnit.id);if(currentUnit)selectUnit(currentUnit)}}
+function renderAll(){renderParts();renderHardware();renderUnits();renderTasks();renderTests();renderWiki();if(currentUnit){currentUnit=units.find(x=>x.id===currentUnit.id);if(currentUnit)selectUnit(currentUnit)}}
 document.querySelectorAll('.tabbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabbtn').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 </script>
