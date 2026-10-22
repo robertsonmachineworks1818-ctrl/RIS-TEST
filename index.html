@@ -75,6 +75,7 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 <button class="tabbtn active" data-tab="partsTab">Parts Inventory</button>
 <button class="tabbtn" data-tab="hardwareTab">Hardware</button>
 <button class="tabbtn" data-tab="shopSupplyTab">Shop Supplies / Consumables</button>
+<button class="tabbtn" data-tab="electricalTab">Electrical</button>
 <button class="tabbtn" data-tab="unitsTab">Unit Information</button>
 <button class="tabbtn" data-tab="wikiTab">Instructions & Guidance</button>
 </div>
@@ -118,6 +119,19 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 <div class="tablewrap"><table><thead><tr><th class="sssortable" data-sort="part_number">Part</th><th class="sssortable" data-sort="description">Description</th><th class="sssortable" data-sort="vendor">Supplier</th><th>Link</th><th class="sssortable num" data-sort="cost">Cost</th><th class="sssortable num" data-sort="retail">Retail</th><th class="sssortable num" data-sort="markup">Markup</th><th class="sssortable num" data-sort="on_hand">On Hand</th><th class="sssortable num" data-sort="needed"># Needed/Unit</th><th class="sssortable num" data-sort="remaining">Required</th><th class="sssortable num" data-sort="on_order">On Order</th><th>Actions</th></tr></thead><tbody id="shopSupplyBody"></tbody></table></div>
 </section>
 
+<section id="electricalTab" class="tab">
+<div class="metrics"><div class="metric"><span>Electrical items</span><b id="elParts">—</b></div><div class="metric"><span>On hand</span><b id="elHand">—</b></div><div class="metric"><span>Short items</span><b id="elShort">—</b></div><div class="metric"><span>On order</span><b id="elOrder">—</b></div></div>
+<div class="row inventory-legend" style="gap:12px;font-size:12px;margin:2px 0 8px;flex-wrap:wrap">
+<label><input id="elFiltGreen" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--green);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Enough on hand</label>
+<label><input id="elFiltPurple" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--purple);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Covered by incoming order</label>
+<label><input id="elFiltYellow" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--yellow);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> Some stock, still short</label>
+<label><input id="elFiltRed" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--red);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> No stock / insufficient incoming</label>
+<button class="small" id="elAllStatesBtn">All</button>
+</div>
+<div class="toolbar"><input id="electricalSearch" placeholder="Search electrical…" size="30"><label>Units in run <input id="electricalRunUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addElectricalBtn">+ Add Electrical Item</button><button id="electricalReceiptLogBtn">Receiving Log</button><button id="electricalExportBtn">Export</button><button id="electricalRefreshBtn">Refresh</button></div>
+<div class="tablewrap"><table><thead><tr><th class="elsortable" data-sort="part_number">Part</th><th class="elsortable" data-sort="description">Description</th><th class="elsortable" data-sort="vendor">Supplier</th><th>Link</th><th class="elsortable num" data-sort="cost">Cost</th><th class="elsortable num" data-sort="retail">Retail</th><th class="elsortable num" data-sort="markup">Markup</th><th class="elsortable num" data-sort="on_hand">On Hand</th><th class="elsortable num" data-sort="needed"># Needed/Unit</th><th class="elsortable num" data-sort="remaining">Required</th><th class="elsortable num" data-sort="on_order">On Order</th><th>Actions</th></tr></thead><tbody id="electricalBody"></tbody></table></div>
+</section>
+
 <section id="unitsTab" class="tab">
 <div class="grid2">
 <div class="card"><h2>Find Unit</h2><p class="muted">Scan the unit barcode or enter its serial number.</p><input id="unitScan" class="bigscan" placeholder="Scan / enter unit serial"><button class="primary" id="openUnitBtn">Open Unit</button><div style="margin-top:12px"><button id="createUnitBtn">+ Create New Unit</button></div></div>
@@ -147,7 +161,7 @@ a{color:#145ea8}.muted{color:var(--muted)}.grid2{display:grid;grid-template-colu
 </div>
 
 <dialog id="partDlg"><h2 id="partDlgTitle">Part</h2><form method="dialog" class="grid">
-<label class="wide">Description<input id="fDesc"></label><label>Inventory Section<select id="fItemType"><option value="part">Parts Inventory</option><option value="hardware">Hardware</option><option value="shop_supply">Shop Supplies / Consumables</option></select></label><label>Category<input id="fCat"></label><label>Manufacturer<input id="fMfr"></label><label>Manufacturer P/N<input id="fMpn"></label><label>Manufacturer Barcode<input id="fMfrBarcode"></label><label>Supplier<input id="fVendor" list="vendorList" autocomplete="off"></label><label>Supplier P/N<input id="fVpn"></label><label class="wide">Supplier product page<input id="fUrl"></label><label>Purchase Cost<input id="fCost" type="number" step=".01"></label><label>Retail Price<input id="fRetail" type="number" step=".01"></label><label>Markup %<input id="fMarkup" type="number" step=".01"></label><label># Needed/Unit<input id="fNeeded" type="number" step=".01" min="0"></label>
+<label class="wide">Description<input id="fDesc"></label><label>Inventory Section<select id="fItemType"><option value="part">Parts Inventory</option><option value="hardware">Hardware</option><option value="shop_supply">Shop Supplies / Consumables</option><option value="electrical">Electrical</option></select></label><label>Category<input id="fCat"></label><label>Manufacturer<input id="fMfr"></label><label>Manufacturer P/N<input id="fMpn"></label><label>Manufacturer Barcode<input id="fMfrBarcode"></label><label>Supplier<input id="fVendor" list="vendorList" autocomplete="off"></label><label>Supplier P/N<input id="fVpn"></label><label class="wide">Supplier product page<input id="fUrl"></label><label>Purchase Cost<input id="fCost" type="number" step=".01"></label><label>Retail Price<input id="fRetail" type="number" step=".01"></label><label>Markup %<input id="fMarkup" type="number" step=".01"></label><label># Needed/Unit<input id="fNeeded" type="number" step=".01" min="0"></label>
 <label>Total On Hand<input id="fOnHand" type="number" step=".01" min="0"></label><label>Adjustment Reason<input id="fAdjustReason" placeholder="Optional — count correction, damaged stock, etc."></label>
 <label>Print label after save?<select id="fPrint"><option value="no">No</option><option value="yes">Yes</option></select></label><label>Labels<input id="fPrintQty" type="number" min="1" value="1"></label><label style="display:flex;align-items:center;gap:8px"><input id="fSmallLabel" type="checkbox" style="width:auto"> Small label (1.1" × 1.1")</label><label class="wide">Notes<textarea id="fNotes"></textarea></label>
 <div id="partHistoryRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" id="partReceiptBtn">Receipt History</button></div><div id="partDangerRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" class="warn" id="deactivatePartBtn">Deactivate Part</button><button type="button" class="danger" id="deletePartBtn">Delete Part</button></div>
@@ -224,7 +238,7 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {jsPDF} from 'https://esm.sh/jspdf@2.5.2';
 const sb=createClient('https://coskdrjelwqpdtrzawnu.supabase.co','sb_publishable_Q2bRyeTaGgcVfUn9uP7YsA_zN03UPsH');
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),num=v=>Number(v||0),money=v=>v==null?'—':'$'+num(v).toFixed(2),dt=v=>v?new Date(v).toLocaleString():'—';
-let parts=[],units=[],tasks=[],tests=[],wiki=[],bomItems=[],suppliers=[],vendors=[],supply=[],currentUnit=null,editingPart=null,receivePart=null,orderPart=null,receiveOrderLine=null,receiptFilterPart=null,receiptRows=[],receiptAttachmentRows=[],activeOrderPart=null,activeOrderRows=[],activeOrderPOs=[],activeOrderAttachments=[],attachmentPOId=null,editingWiki=null,editingHistory=null,currentHardware=null,whereUsedRows=[],whereUsedPhotos=[],sortKey='part_number',sortDir=1,hwSortKey='part_number',hwSortDir=1,ssSortKey='part_number',ssSortDir=1,calcLock=false;
+let parts=[],units=[],tasks=[],tests=[],wiki=[],bomItems=[],suppliers=[],vendors=[],supply=[],currentUnit=null,editingPart=null,receivePart=null,orderPart=null,receiveOrderLine=null,receiptFilterPart=null,receiptRows=[],receiptAttachmentRows=[],activeOrderPart=null,activeOrderRows=[],activeOrderPOs=[],activeOrderAttachments=[],attachmentPOId=null,editingWiki=null,editingHistory=null,currentHardware=null,whereUsedRows=[],whereUsedPhotos=[],sortKey='part_number',sortDir=1,hwSortKey='part_number',hwSortDir=1,ssSortKey='part_number',ssSortDir=1,elSortKey='part_number',elSortDir=1,calcLock=false;
 
 function msg(x){$('authMsg').textContent=x||''}
 async function authState(){let{data:{session}}=await sb.auth.getSession();let on=!!session;$('authBox').classList.toggle('hidden',on);$('app').classList.toggle('hidden',!on);$('logoutBtn').classList.toggle('hidden',!on);$('userEmail').textContent=on?session.user.email:'';if(on)await loadAll()}
@@ -258,7 +272,7 @@ function stateAllowed(x,prefix=''){
   return !el||el.checked
 }
 function renderParts(){
-  let q=$('search').value.toLowerCase(),base=parts.filter(p=>(p.item_type||'part')!=='hardware');
+  let q=$('search').value.toLowerCase(),base=parts.filter(p=>(p.item_type||'part')==='part');
   let v=base.map(p=>partVM(p)).filter(x=>[x.part_number,x.description,x.vendor,x.manufacturer,x.manufacturer_part_number,x.manufacturer_barcode].join(' ').toLowerCase().includes(q)&&stateAllowed(x));
   v.sort((a,b)=>cmp(a,b,sortKey));
   $('partsBody').innerHTML=v.map(x=>`<tr class="${stockClass(x)}"><td><b>${esc(x.part_number)}</b></td><td>${esc(x.description)}</td><td>${esc(x.vendor)||'—'}</td><td>${x.url?`<a target="_blank" rel="noopener" href="${esc(x.url)}">View Part</a>`:'—'}</td><td class="num">${money(x.cost)}</td><td class="num">${money(x.retail)}</td><td class="num">${x.markup==null?'—':num(x.markup).toFixed(1)+'%'}</td><td class="num">${x.on_hand}</td><td class="num">${x.needed}</td><td class="num">${x.remaining}</td><td class="num">${x.on_order}</td><td class="actions"><button class="small" data-order="${x.id}">Add Order</button>${x.on_order>0?`<button class="small" data-activeorder="${x.id}">On Order: ${x.on_order}</button>`:""}<button class="small" data-rec="${x.id}">Receive</button><button class="small" data-edit="${x.id}">Edit</button><button class="small" data-label="${x.id}">Print Label</button></td></tr>`).join('');
@@ -317,6 +331,32 @@ $('addShopSupplyBtn').onclick=()=>{openPart(null);$('fItemType').value='shop_sup
 $('shopSupplyReceiptLogBtn').onclick=()=>openReceiptLog(null);
 $('shopSupplyRefreshBtn').onclick=loadAll;
 $('shopSupplyExportBtn').onclick=()=>exportInventoryType('shop_supply',true);
+
+function elCmp(a,b,k){let av=a[k],bv=b[k];if(typeof av==='number'||typeof bv==='number')return(num(av)-num(bv))*elSortDir;return String(av??'').localeCompare(String(bv??''))*elSortDir}
+function renderElectrical(){
+  let q=$('electricalSearch').value.toLowerCase(),unitsIn=Math.max(1,num($('electricalRunUnits').value)||1),base=parts.filter(p=>(p.item_type||'part')==='electrical');
+  let v=base.map(p=>partVM(p,unitsIn)).filter(x=>[x.part_number,x.description,x.vendor,x.manufacturer,x.manufacturer_part_number,x.manufacturer_barcode].join(' ').toLowerCase().includes(q)&&stateAllowed(x,'el'));
+  v.sort((a,b)=>elCmp(a,b,elSortKey));
+  $('electricalBody').innerHTML=v.map(x=>`<tr class="${stockClass(x)}"><td><b>${esc(x.part_number)}</b></td><td>${esc(x.description)}</td><td>${esc(x.vendor)||'—'}</td><td>${x.url?`<a target="_blank" rel="noopener" href="${esc(x.url)}">View Part</a>`:'—'}</td><td class="num">${money(x.cost)}</td><td class="num">${money(x.retail)}</td><td class="num">${x.markup==null?'—':num(x.markup).toFixed(1)+'%'}</td><td class="num">${x.on_hand}</td><td class="num">${x.needed}</td><td class="num">${x.remaining}</td><td class="num">${x.on_order}</td><td class="actions"><button class="small" data-elorder="${x.id}">Add Order</button>${x.on_order>0?`<button class="small" data-elactiveorder="${x.id}">On Order: ${x.on_order}</button>`:""}<button class="small" data-elrec="${x.id}">Receive</button><button class="small" data-eledit="${x.id}">Edit</button><button class="small" data-ellabel="${x.id}">Print Label</button></td></tr>`).join('');
+  $('elParts').textContent=base.length;
+  $('elHand').textContent=base.reduce((a,p)=>a+num((supply.find(x=>x.part_id===p.id)||{}).quantity_on_hand),0);
+  $('elShort').textContent=base.map(p=>partVM(p,unitsIn)).filter(x=>x.on_hand<x.remaining).length;
+  $('elOrder').textContent=base.reduce((a,p)=>a+num((supply.find(x=>x.part_id===p.id)||{}).quantity_on_order),0);
+  document.querySelectorAll('[data-elorder]').forEach(b=>b.onclick=()=>openOrder(b.dataset.elorder));
+  document.querySelectorAll('[data-elactiveorder]').forEach(b=>b.onclick=()=>openActiveOrders(b.dataset.elactiveorder));
+  document.querySelectorAll('[data-elrec]').forEach(b=>b.onclick=()=>openReceive(b.dataset.elrec));
+  document.querySelectorAll('[data-eledit]').forEach(b=>b.onclick=()=>openPart(b.dataset.eledit));
+  document.querySelectorAll('[data-ellabel]').forEach(b=>b.onclick=()=>{let x=partVM(parts.find(p=>p.id===b.dataset.ellabel));askPrint('PART',x.part_number,x.description,x.small_label)})
+}
+document.querySelectorAll('th.elsortable').forEach(th=>th.onclick=()=>{let k=th.dataset.sort;if(elSortKey===k)elSortDir*=-1;else{elSortKey=k;elSortDir=1}renderElectrical()});
+$('electricalSearch').oninput=renderElectrical;
+$('electricalRunUnits').oninput=renderElectrical;
+['elFiltGreen','elFiltPurple','elFiltYellow','elFiltRed'].forEach(id=>$(id).onchange=renderElectrical);
+$('elAllStatesBtn').onclick=()=>{['elFiltGreen','elFiltPurple','elFiltYellow','elFiltRed'].forEach(id=>$(id).checked=true);renderElectrical()};
+$('addElectricalBtn').onclick=()=>{openPart(null);$('fItemType').value='electrical';$('partDlgTitle').textContent='Add Electrical Item'};
+$('electricalReceiptLogBtn').onclick=()=>openReceiptLog(null);
+$('electricalRefreshBtn').onclick=loadAll;
+$('electricalExportBtn').onclick=()=>exportInventoryType('electrical',true);
 
 
 async function loadWhereUsed(){
@@ -533,7 +573,7 @@ $('exportPartsBtn').onclick=()=>exportDlg.showModal();
 function csvCell(v){let s=String(v??'');return /[",\n]/.test(s)?'"'+s.replaceAll('"','""')+'"':s}
 function downloadCSV(data,filename){let csv=data.map(r=>r.map(csvCell).join(',')).join('\r\n');let blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 function exportInventoryType(itemType,includeInventory){
-  let unitsEl=itemType==='shop_supply'?'shopSupplyRunUnits':'runUnits',unitsIn=Math.max(1,num($(unitsEl).value)||1);
+  let unitsEl=itemType==='shop_supply'?'shopSupplyRunUnits':itemType==='electrical'?'electricalRunUnits':'runUnits',unitsIn=Math.max(1,num($(unitsEl).value)||1);
   let rows=parts.filter(p=>(p.item_type||'part')===itemType).map(p=>partVM(p,unitsIn));
   let headers=['Part Number','Description','Category','Manufacturer','Manufacturer Part Number','Manufacturer Barcode','Supplier','Supplier Part Number','Product Link','Purchase Cost','Retail Price','Markup %','# Needed/Unit'];
   if(includeInventory)headers.push('On Hand','On Order','Required for Current Run','Inventory Status');
@@ -543,7 +583,7 @@ function exportInventoryType(itemType,includeInventory){
     if(includeInventory){let st=stockClass(x).replace('stock-','');r.push(x.on_hand,x.on_order,x.remaining,st)}
     data.push(r)
   }
-  let stem=itemType==='shop_supply'?'RIS-shop-supplies':'RIS-parts';
+  let stem=itemType==='shop_supply'?'RIS-shop-supplies':itemType==='electrical'?'RIS-electrical':'RIS-parts';
   downloadCSV(data,includeInventory?stem+'-with-inventory.csv':stem+'-list.csv')
 }
 function exportParts(includeInventory){exportInventoryType('part',includeInventory);exportDlg.close()}
@@ -705,7 +745,7 @@ function printLabels(kind,code,desc,q,small=false){
   else browserPrintLabels(code,desc,q,small)
 }
 
-function renderAll(){renderParts();renderHardware();renderShopSupplies();renderUnits();renderTasks();renderTests();renderWiki();if(currentUnit){currentUnit=units.find(x=>x.id===currentUnit.id);if(currentUnit)selectUnit(currentUnit)}}
+function renderAll(){renderParts();renderHardware();renderShopSupplies();renderElectrical();renderUnits();renderTasks();renderTests();renderWiki();if(currentUnit){currentUnit=units.find(x=>x.id===currentUnit.id);if(currentUnit)selectUnit(currentUnit)}}
 document.querySelectorAll('.tabbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabbtn').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 </script>
