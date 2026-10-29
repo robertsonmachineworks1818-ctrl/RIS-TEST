@@ -73,6 +73,14 @@ body.hide-pricing .pricing-col{display:none!important}
 .ris-modal-overlay.hidden{display:none!important}
 .ris-modal-panel{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.28);padding:18px}
 
+
+.merge-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 10px}
+.merge-grid .head{font-weight:700;background:#f3f5f7;padding:6px}
+.merge-grid .cell{padding:6px;border-bottom:1px solid #edf0f3;overflow-wrap:anywhere}
+.merge-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-top:10px}
+.merge-count{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff}
+@media(max-width:700px){.merge-grid{grid-template-columns:1fr}.merge-grid .head{display:none}}
+
 </style>
 </head>
 <body>
@@ -185,7 +193,7 @@ body.hide-pricing .pricing-col{display:none!important}
 </div>
 
 
-<div id="partContextMenu" class="context-menu hidden"><button id="duplicatePartMenuBtn">Duplicate Item</button></div>
+<div id="partContextMenu" class="context-menu hidden"><button id="duplicatePartMenuBtn">Duplicate Item</button><button id="mergePartMenuBtn">Merge Into…</button></div>
 
 <dialog id="bulkOrderDlg" style="width:min(1050px,97vw)">
 <h2>Add Bulk Order</h2>
@@ -217,12 +225,45 @@ body.hide-pricing .pricing-col{display:none!important}
 <div class="row" style="justify-content:flex-end;margin-top:12px"><button onclick="orderEditDlg.close()">Cancel</button><button class="primary" id="saveOrderEditBtn">Save Changes</button></div>
 </dialog>
 
+
+<div id="mergePartDlg" class="ris-modal-overlay hidden" aria-hidden="true">
+  <div class="ris-modal-panel" style="width:min(980px,97vw)" role="dialog" aria-modal="true">
+    <h2>Merge Duplicate Part</h2>
+    <div class="warnbox" style="margin-bottom:12px"><b>Protected action:</b> This permanently reassigns the duplicate part's linked history to the part you keep. The duplicate record is then deactivated, not deleted.</div>
+    <div id="mergeSourceSummary" class="card" style="margin-bottom:12px"></div>
+
+    <label>Search for the part to KEEP
+      <input id="mergeDestSearch" placeholder="Part number, description, supplier, manufacturer…" autocomplete="off">
+    </label>
+    <div id="mergeDestResults" class="bulk-results hidden" style="position:relative;width:100%;margin-top:4px"></div>
+    <div id="mergeDestSummary" class="card hidden" style="margin-top:12px"></div>
+
+    <div id="mergePreviewWrap" class="hidden" style="margin-top:14px">
+      <h3>Merge Preview</h3>
+      <div id="mergePreview"></div>
+      <div class="warnbox" style="margin-top:12px">
+        Inventory is not directly overwritten. Existing inventory transactions are reassigned to the kept part, so the resulting on-hand quantity is the combined ledger total.
+      </div>
+      <label style="margin-top:14px">Type the destination part number exactly to confirm
+        <input id="mergeConfirmText" autocomplete="off">
+      </label>
+      <div class="row" style="justify-content:flex-end;margin-top:12px">
+        <button type="button" id="mergeCancelBtn">Cancel</button>
+        <button type="button" class="danger" id="mergeExecuteBtn" disabled>MERGE PARTS</button>
+      </div>
+    </div>
+    <div id="mergePrePreviewButtons" class="row" style="justify-content:flex-end;margin-top:12px">
+      <button type="button" id="mergeCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
 <dialog id="partDlg"><h2 id="partDlgTitle">Part</h2><form method="dialog" class="grid">
 <label class="wide">Description<input id="fDesc"></label><label>Inventory Section<select id="fItemType"><option value="part">Parts Inventory</option><option value="hardware">Hardware</option><option value="shop_supply">Shop Supplies / Consumables</option><option value="electrical">Electrical</option></select></label><label>Category<input id="fCat"></label><label>Manufacturer<input id="fMfr"></label><label>Manufacturer P/N<input id="fMpn"></label><label>Manufacturer Barcode<input id="fMfrBarcode"></label><label>Primary Supplier<input id="fVendor" list="vendorList" autocomplete="off"></label><label>Primary Supplier P/N<input id="fVpn"></label><label class="wide">Primary Supplier product page<input id="fUrl"></label><label>Primary Purchase Cost<input id="fCost" type="number" step=".01"></label><label>Secondary Supplier<input id="fVendor2" list="vendorList" autocomplete="off"></label><label>Secondary Supplier P/N<input id="fVpn2"></label><label class="wide">Secondary Supplier product page<input id="fUrl2"></label><label>Secondary Purchase Cost<input id="fCost2" type="number" step=".01"></label><label>Retail Price<input id="fRetail" type="number" step=".01"></label><label>Markup %<input id="fMarkup" type="number" step=".01"></label><label id="fNeededWrap"># Needed/Unit<input id="fNeeded" type="number" step=".01" min="0"></label>
 <label id="fKeepWrap" class="hidden">Keep in Inventory<input id="fKeep" type="number" step=".01" min="0"></label>
 <label>Total On Hand<input id="fOnHand" type="number" step=".01" min="0"></label><label>Adjustment Reason<input id="fAdjustReason" placeholder="Optional — count correction, damaged stock, etc."></label>
 <label>Print label after save?<select id="fPrint"><option value="no">No</option><option value="yes">Yes</option></select></label><label>Labels<input id="fPrintQty" type="number" min="1" value="1"></label><label style="display:flex;align-items:center;gap:8px"><input id="fSmallLabel" type="checkbox" style="width:auto"> Small label (1.1" × 1.1")</label><label class="wide">Notes<textarea id="fNotes"></textarea></label>
-<div id="partHistoryRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" id="partReceiptBtn">Receipt History</button></div><div id="partDangerRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" class="warn" id="deactivatePartBtn">Deactivate Part</button><button type="button" class="danger" id="deletePartBtn">Delete Part</button></div>
+<div id="partHistoryRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" id="partReceiptBtn">Receipt History</button></div><div id="partDangerRow" class="wide row hidden" style="justify-content:flex-start"><button type="button" id="mergePartBtn">Merge Into…</button><button type="button" class="warn" id="deactivatePartBtn">Deactivate Part</button><button type="button" class="danger" id="deletePartBtn">Delete Part</button></div>
 <div class="wide row" style="justify-content:flex-end"><button value="cancel">Cancel</button><button type="button" class="primary" id="savePartBtn">Save</button></div></form></dialog>
 <datalist id="vendorList"></datalist>
 
@@ -517,6 +558,105 @@ let contextPartId=null,duplicatingPart=false;
 document.addEventListener('contextmenu',e=>{let row=e.target.closest('[data-part-row]');if(!row)return;e.preventDefault();contextPartId=row.dataset.partRow;let m=$('partContextMenu');m.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';m.style.top=Math.min(e.clientY,window.innerHeight-80)+'px';m.classList.remove('hidden')});
 document.addEventListener('click',e=>{if(!e.target.closest('#partContextMenu'))$('partContextMenu').classList.add('hidden')});
 $('duplicatePartMenuBtn').onclick=()=>{let p=parts.find(x=>x.id===contextPartId);if(!p)return;$('partContextMenu').classList.add('hidden');duplicatingPart=true;openPart(p.id);editingPart=null;$('partDlgTitle').textContent='Duplicate '+p.part_number;$('fMfrBarcode').value='';$('fOnHand').value=0;$('fAdjustReason').value='';$('partDangerRow').classList.add('hidden');$('partHistoryRow').classList.add('hidden')};
+$('mergePartMenuBtn').onclick=()=>{let id=contextPartId;$('partContextMenu').classList.add('hidden');openMergePart(id)};
+$('mergePartBtn').onclick=()=>{if(editingPart){let id=editingPart.id;partDlg.close();openMergePart(id)}};
+
+
+let mergeSourcePart=null,mergeDestPart=null,mergePreviewData=null;
+
+function closeMergePart(){
+  $('mergePartDlg').classList.add('hidden');
+  $('mergePartDlg').setAttribute('aria-hidden','true');
+  mergeSourcePart=null;mergeDestPart=null;mergePreviewData=null;
+}
+function openMergePart(sourceId){
+  let p=parts.find(x=>x.id===sourceId);
+  if(!p)return alert('Source part was not found.');
+  mergeSourcePart=partVM(p);mergeDestPart=null;mergePreviewData=null;
+  $('mergeDestSearch').value='';
+  $('mergeDestResults').innerHTML='';$('mergeDestResults').classList.add('hidden');
+  $('mergeDestSummary').classList.add('hidden');
+  $('mergePreviewWrap').classList.add('hidden');
+  $('mergePrePreviewButtons').classList.remove('hidden');
+  $('mergeConfirmText').value='';$('mergeExecuteBtn').disabled=true;
+  $('mergeSourceSummary').innerHTML=`<b>Duplicate/source part</b><div style="font-size:18px;margin-top:4px">${esc(mergeSourcePart.part_number)} — ${esc(mergeSourcePart.description)}</div><div class="muted">On hand: ${mergeSourcePart.on_hand} &nbsp; On order: ${mergeSourcePart.on_order} &nbsp; Primary supplier: ${esc(mergeSourcePart.vendor||'—')}</div>`;
+  $('mergePartDlg').classList.remove('hidden');
+  $('mergePartDlg').setAttribute('aria-hidden','false');
+  setTimeout(()=>$('mergeDestSearch').focus(),0);
+}
+function mergeCandidateText(p){
+  let x=partVM(p);
+  return [p.part_number,p.description,x.vendor,x.vendorPart,x.vendor2,x.vendorPart2,p.manufacturer,p.manufacturer_part_number,p.manufacturer_barcode].filter(Boolean).join(' ').toLowerCase();
+}
+$('mergeDestSearch').oninput=()=>{
+  if(!mergeSourcePart)return;
+  let q=$('mergeDestSearch').value.trim().toLowerCase();
+  let r=q?parts.filter(p=>p.id!==mergeSourcePart.id&&mergeCandidateText(p).includes(q)).slice(0,25):[];
+  $('mergeDestResults').innerHTML=r.map(p=>{let x=partVM(p);return `<div class="bulk-result" data-mergedest="${p.id}"><b>${esc(p.part_number)}</b> — ${esc(p.description)}<div class="muted">${esc(x.vendor||'No primary supplier')} · On hand ${x.on_hand}</div></div>`}).join('');
+  $('mergeDestResults').classList.toggle('hidden',!r.length);
+  document.querySelectorAll('[data-mergedest]').forEach(b=>b.onclick=()=>selectMergeDestination(b.dataset.mergedest));
+};
+async function selectMergeDestination(id){
+  let p=parts.find(x=>x.id===id);
+  if(!p||!mergeSourcePart)return;
+  mergeDestPart=partVM(p);
+  $('mergeDestResults').classList.add('hidden');
+  $('mergeDestSearch').value=mergeDestPart.part_number;
+  $('mergeDestSummary').innerHTML=`<b>Part to KEEP</b><div style="font-size:18px;margin-top:4px">${esc(mergeDestPart.part_number)} — ${esc(mergeDestPart.description)}</div><div class="muted">On hand: ${mergeDestPart.on_hand} &nbsp; On order: ${mergeDestPart.on_order} &nbsp; Primary supplier: ${esc(mergeDestPart.vendor||'—')}</div>`;
+  $('mergeDestSummary').classList.remove('hidden');
+  let pr=await sb.rpc('ris_merge_parts_preview',{p_source_part_id:mergeSourcePart.id,p_destination_part_id:mergeDestPart.id});
+  if(pr.error){mergeDestPart=null;return alert('Merge preview failed: '+pr.error.message)}
+  mergePreviewData=pr.data;
+  renderMergePreview();
+}
+function mergeFieldRow(label,src,dst,after){
+  return `<div class="cell"><b>${esc(label)}</b></div><div class="cell">${esc(src??'—')}</div><div class="cell">${esc(dst??'—')}</div><div class="cell" style="display:none">${esc(after??'—')}</div>`;
+}
+function renderMergePreview(){
+  if(!mergePreviewData||!mergeDestPart)return;
+  let s=mergePreviewData.source||{},d=mergePreviewData.destination||{},a=mergePreviewData.after||{},c=mergePreviewData.counts||{};
+  let fields=[
+    ['Part Number',s.part_number,d.part_number,a.part_number],
+    ['Description',s.description,d.description,a.description],
+    ['Manufacturer',s.manufacturer,d.manufacturer,a.manufacturer],
+    ['Manufacturer P/N',s.manufacturer_part_number,d.manufacturer_part_number,a.manufacturer_part_number],
+    ['Product URL',mergeSourcePart.url,mergeDestPart.url,a.product_url],
+    ['Item Type',s.item_type,d.item_type,d.item_type]
+  ];
+  let rows=fields.map(f=>`<div class="cell"><b>${esc(f[0])}</b></div><div class="cell">${esc(f[1]??'—')}</div><div class="cell">${esc(f[2]??'—')}</div><div class="cell">${esc(f[3]??'—')}</div>`).join('');
+  let counts=Object.entries(c).map(([k,v])=>`<div class="merge-count"><b>${esc(k.replaceAll('_',' '))}</b><div style="font-size:20px">${v}</div></div>`).join('');
+  $('mergePreview').innerHTML=`
+    <div class="merge-grid" style="grid-template-columns:1.1fr 1fr 1fr 1fr">
+      <div class="head">Field</div><div class="head">Duplicate/source</div><div class="head">Keep/destination</div><div class="head">After merge</div>${rows}
+    </div>
+    <h4 style="margin-bottom:6px">Linked records that will move</h4><div class="merge-counts">${counts}</div>
+    <div class="card" style="margin-top:10px"><b>Inventory result</b><div>${mergeDestPart.on_hand} + ${mergeSourcePart.on_hand} = <b>${num(mergeDestPart.on_hand)+num(mergeSourcePart.on_hand)}</b> on hand (ledger-derived)</div></div>
+    <div class="card" style="margin-top:10px"><b>Suppliers</b><div>Existing supplier records from both parts will be preserved. Exact duplicate supplier records will be collapsed safely and supplier ranks will be rebuilt.</div></div>
+    <div class="card" style="margin-top:10px"><b>Barcode handling</b><div>The destination RIS barcode remains the canonical barcode. The duplicate record is retained inactive for audit history.</div></div>`;
+  $('mergeConfirmText').placeholder=mergeDestPart.part_number;
+  $('mergeConfirmText').value='';
+  $('mergeExecuteBtn').disabled=true;
+  $('mergePreviewWrap').classList.remove('hidden');
+  $('mergePrePreviewButtons').classList.add('hidden');
+}
+$('mergeConfirmText').oninput=()=>{$('mergeExecuteBtn').disabled=!mergeDestPart||$('mergeConfirmText').value!==mergeDestPart.part_number};
+$('mergeExecuteBtn').onclick=async()=>{
+  if(!mergeSourcePart||!mergeDestPart||!mergePreviewData)return;
+  if($('mergeConfirmText').value!==mergeDestPart.part_number)return alert('Confirmation does not match the destination part number.');
+  if(!confirm(`FINAL CONFIRMATION\n\nMerge ${mergeSourcePart.part_number} INTO ${mergeDestPart.part_number}?\n\nThis will reassign linked history and deactivate the duplicate part.`))return;
+  $('mergeExecuteBtn').disabled=true;
+  let r=await sb.rpc('ris_merge_parts',{p_source_part_id:mergeSourcePart.id,p_destination_part_id:mergeDestPart.id,p_confirmation:$('mergeConfirmText').value});
+  if(r.error){$('mergeExecuteBtn').disabled=false;return alert('Merge failed: '+r.error.message)}
+  let keptBefore=mergeDestPart.part_number;
+  closeMergePart();
+  if(partDlg.open)partDlg.close();
+  await loadAll();
+  let kept=parts.find(p=>p.id===r.data);
+  alert(`Merge complete.\n\nKept part: ${kept?.part_number||keptBefore}\nThe duplicate part was deactivated and its linked records were moved.`);
+};
+$('mergeCancelBtn').onclick=closeMergePart;
+$('mergeCloseBtn').onclick=closeMergePart;
+$('mergePartDlg').addEventListener('click',e=>{if(e.target===$('mergePartDlg'))closeMergePart()});
 
 function openReceive(id){receivePart=partVM(parts.find(p=>p.id===id));$('receivePartName').textContent=receivePart.part_number+' — '+receivePart.description;$('receiveQty').value=1;$('receiveRef').value='';$('receiveNotes').value='';$('receivePrintBarcode').checked=false;receiveDlg.showModal()}
 $('receiveSaveBtn').onclick=async()=>{let qty=num($('receiveQty').value),doPrint=$('receivePrintBarcode').checked;let r=await sb.rpc('ris_receive_total',{p_part_id:receivePart.id,p_quantity:qty,p_reference:$('receiveRef').value||null,p_notes:$('receiveNotes').value||null});if(r.error)return alert(r.error.message);let p=receivePart;receiveDlg.close();await loadAll();if(doPrint){if(Number.isInteger(qty)&&qty>0)printLabels('PART',p.part_number,p.description,qty,!!p.small_label);else alert('Receipt saved. Barcode labels were not printed because the received quantity is not a whole number.')}};
