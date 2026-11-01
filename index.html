@@ -103,6 +103,8 @@ body.hide-pricing .pricing-col{display:none!important}
 <button class="tabbtn" data-tab="unitsTab">Unit Information</button>
 <button class="tabbtn" data-tab="wikiTab">Instructions & Guidance</button>
 <button class="tabbtn" data-tab="remindersTab">Reminders</button>
+<button class="tabbtn" data-tab="ordersTab">Orders</button>
+<button class="tabbtn" data-tab="miscExpensesTab">Misc Expenses</button>
 </div>
 <main>
 <section id="partsTab" class="tab active">
@@ -188,6 +190,47 @@ body.hide-pricing .pricing-col{display:none!important}
 <div class="card"><h2>Reminders</h2><div id="remindersList"></div></div>
 </div></section>
 
+
+<section id="ordersTab" class="tab">
+  <div class="metrics">
+    <div class="metric"><span>Orders shown</span><b id="ordersCount">—</b></div>
+    <div class="metric"><span>Order value</span><b id="ordersValue">—</b></div>
+    <div class="metric"><span>Open</span><b id="ordersOpen">—</b></div>
+    <div class="metric"><span>Received</span><b id="ordersReceived">—</b></div>
+  </div>
+  <div class="toolbar">
+    <input id="ordersSearch" placeholder="Search PO, supplier, part number, description…" size="34">
+    <label>Status <select id="ordersStatus"><option value="">All</option><option value="submitted">Submitted</option><option value="partial">Partial</option><option value="received">Received</option><option value="cancelled">Canceled</option></select></label>
+    <label>From <input id="ordersFrom" type="date"></label>
+    <label>To <input id="ordersTo" type="date"></label>
+    <button id="ordersRefreshBtn">Refresh</button>
+  </div>
+  <div class="tablewrap"><table><thead><tr>
+    <th>PO / Reference</th><th>Supplier</th><th>Order Date</th><th>Status</th><th class="num">Lines</th><th class="num">Order Value</th><th>Next ETA</th><th class="num">Attachments</th><th></th>
+  </tr></thead><tbody id="ordersBody"></tbody></table></div>
+</section>
+
+<section id="miscExpensesTab" class="tab">
+  <div class="metrics">
+    <div class="metric"><span>Expenses shown</span><b id="miscCount">—</b></div>
+    <div class="metric"><span>Subtotal</span><b id="miscSubtotal">—</b></div>
+    <div class="metric"><span>Tax</span><b id="miscTax">—</b></div>
+    <div class="metric"><span>Total</span><b id="miscTotal">—</b></div>
+  </div>
+  <div class="toolbar">
+    <input id="miscSearch" placeholder="Search vendor, description, category, project…" size="34">
+    <label>Category <select id="miscCategoryFilter"><option value="">All Categories</option></select></label>
+    <label>From <input id="miscFrom" type="date"></label>
+    <label>To <input id="miscTo" type="date"></label>
+    <button class="primary" id="addMiscExpenseBtn">+ Add Expense</button>
+    <button id="exportMiscBtn">Export CSV</button>
+    <button id="miscRefreshBtn">Refresh</button>
+  </div>
+  <div class="tablewrap"><table><thead><tr>
+    <th>Date</th><th>Vendor / Payee</th><th>Description</th><th>Category</th><th>Project / Job</th><th class="num">Amount</th><th class="num">Tax</th><th class="num">Total</th><th>Payment</th><th></th>
+  </tr></thead><tbody id="miscExpensesBody"></tbody></table></div>
+</section>
+
 <section id="wikiTab" class="tab"><div class="notice">Searchable shop wiki for videos, PDFs, and written assembly guidance.</div><div class="grid2"><div class="card"><div class="row"><h2 style="margin-right:auto">Search Instructions</h2><button class="primary" id="newWikiBtn">+ New Instruction</button></div><input id="wikiSearch" class="bigscan" placeholder="Search instructions…"><div id="wikiList" style="margin-top:10px"></div></div><div class="card"><h2>Instruction</h2><div id="wikiDetail" class="muted">Choose an instruction.</div></div></div></section>
 </main>
 </div>
@@ -257,6 +300,40 @@ body.hide-pricing .pricing-col{display:none!important}
     </div>
   </div>
 </div>
+
+
+<div id="orderHistoryDlg" class="ris-modal-overlay hidden" aria-hidden="true">
+  <div class="ris-modal-panel" style="width:min(1050px,97vw)" role="dialog" aria-modal="true">
+    <div class="row"><h2 id="orderHistoryTitle" style="margin-right:auto">Order</h2><button id="closeOrderHistoryBtn">Close</button></div>
+    <div id="orderHistoryDetail"></div>
+    <input id="orderHistoryFileInput" type="file" multiple accept=".pdf,image/*" class="hidden">
+  </div>
+</div>
+
+<div id="miscExpenseDlg" class="ris-modal-overlay hidden" aria-hidden="true">
+  <div class="ris-modal-panel" style="width:min(850px,97vw)" role="dialog" aria-modal="true">
+    <h2 id="miscExpenseDlgTitle">Add Expense</h2>
+    <div class="grid">
+      <label>Date<input id="meDate" type="date"></label>
+      <label>Vendor / Payee<input id="meVendor"></label>
+      <label class="wide">Description<input id="meDescription"></label>
+      <label>Category<input id="meCategory" list="miscCategoryList"></label>
+      <label>Project / Job Reference<input id="meProject"></label>
+      <label>Amount<input id="meAmount" type="number" min="0" step=".01"></label>
+      <label>Tax<input id="meTax" type="number" min="0" step=".01" value="0"></label>
+      <label>Payment Method<input id="mePayment"></label>
+      <label class="wide">Notes<textarea id="meNotes" rows="4"></textarea></label>
+      <label class="wide">Receipt / Attachment<input id="meFiles" type="file" multiple accept=".pdf,image/*"></label>
+      <div class="wide" id="meExistingAttachments"></div>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button id="miscExpenseCancelBtn">Cancel</button>
+      <button id="miscExpenseDeleteBtn" class="danger hidden">Delete Expense</button>
+      <button id="miscExpenseSaveBtn" class="primary">Save Expense</button>
+    </div>
+  </div>
+</div>
+<datalist id="miscCategoryList"></datalist>
 
 <dialog id="partDlg"><h2 id="partDlgTitle">Part</h2><form method="dialog" class="grid">
 <label class="wide">Description<input id="fDesc"></label><label>Inventory Section<select id="fItemType"><option value="part">Parts Inventory</option><option value="hardware">Hardware</option><option value="shop_supply">Shop Supplies / Consumables</option><option value="electrical">Electrical</option></select></label><label>Category<input id="fCat"></label><label>Manufacturer<input id="fMfr"></label><label>Manufacturer P/N<input id="fMpn"></label><label>Manufacturer Barcode<input id="fMfrBarcode"></label><label>Primary Supplier<input id="fVendor" list="vendorList" autocomplete="off"></label><label>Primary Supplier P/N<input id="fVpn"></label><label class="wide">Primary Supplier product page<input id="fUrl"></label><label>Primary Purchase Cost<input id="fCost" type="number" step=".01"></label><label>Secondary Supplier<input id="fVendor2" list="vendorList" autocomplete="off"></label><label>Secondary Supplier P/N<input id="fVpn2"></label><label class="wide">Secondary Supplier product page<input id="fUrl2"></label><label>Secondary Purchase Cost<input id="fCost2" type="number" step=".01"></label><label>Retail Price<input id="fRetail" type="number" step=".01"></label><label>Markup %<input id="fMarkup" type="number" step=".01"></label><label id="fNeededWrap"># Needed/Unit<input id="fNeeded" type="number" step=".01" min="0"></label>
@@ -342,7 +419,7 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {jsPDF} from 'https://esm.sh/jspdf@2.5.2';
 const sb=createClient('https://coskdrjelwqpdtrzawnu.supabase.co','sb_publishable_Q2bRyeTaGgcVfUn9uP7YsA_zN03UPsH');
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),num=v=>Number(v||0),money=v=>v==null?'—':'$'+num(v).toFixed(2),dt=v=>v?new Date(v).toLocaleString():'—';
-let parts=[],units=[],tasks=[],tests=[],wiki=[],reminders=[],bomItems=[],suppliers=[],vendors=[],supply=[],currentUnit=null,editingPart=null,receivePart=null,orderPart=null,receiveOrderLine=null,receiptFilterPart=null,receiptRows=[],receiptAttachmentRows=[],activeOrderPart=null,activeOrderRows=[],activeOrderPOs=[],activeOrderAttachments=[],attachmentPOId=null,editingWiki=null,editingHistory=null,currentHardware=null,whereUsedRows=[],whereUsedPhotos=[],sortKey='part_number',sortDir=1,hwSortKey='part_number',hwSortDir=1,ssSortKey='part_number',ssSortDir=1,elSortKey='part_number',elSortDir=1,calcLock=false;
+let parts=[],units=[],tasks=[],tests=[],wiki=[],reminders=[],miscExpenses=[],miscExpenseAttachments=[],bomItems=[],suppliers=[],vendors=[],supply=[],orderHistoryPOs=[],orderHistoryItems=[],orderHistoryStatus=[],orderHistoryAttachments=[],currentOrderHistoryPO=null,currentUnit=null,editingPart=null,receivePart=null,orderPart=null,receiveOrderLine=null,receiptFilterPart=null,receiptRows=[],receiptAttachmentRows=[],activeOrderPart=null,activeOrderRows=[],activeOrderPOs=[],activeOrderAttachments=[],attachmentPOId=null,editingWiki=null,editingHistory=null,currentHardware=null,whereUsedRows=[],whereUsedPhotos=[],editingMiscExpense=null,sortKey='part_number',sortDir=1,hwSortKey='part_number',hwSortDir=1,ssSortKey='part_number',ssSortDir=1,elSortKey='part_number',elSortDir=1,calcLock=false;
 
 function msg(x){$('authMsg').textContent=x||''}
 async function authState(){let{data:{session}}=await sb.auth.getSession();let on=!!session;$('authBox').classList.toggle('hidden',on);$('app').classList.toggle('hidden',!on);$('logoutBtn').classList.toggle('hidden',!on);$('userEmail').textContent=on?session.user.email:'';if(on)await loadAll()}
@@ -351,7 +428,7 @@ $('signUpBtn').onclick=async()=>{msg('Creating account…');let{error}=await sb.
 $('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};authState();
 
 async function loadAll(){try{
-let [a,b,c,d,e,f,g,h,i,j]=await Promise.all([
+let [a,b,c,d,e,f,g,h,i,j,k,l]=await Promise.all([
 sb.from('parts').select('*').eq('active',true),
 sb.from('part_supply_status').select('*'),
 sb.from('part_vendors').select('*,vendors(name)').eq('active',true),
@@ -361,9 +438,11 @@ sb.from('assembly_task_definitions').select('*').eq('active',true).order('sort_o
 sb.from('test_definitions').select('*').eq('active',true).order('sort_order'),
 sb.from('instruction_pages').select('*').eq('active',true).order('sort_order'),
 sb.from('vendors').select('id,name').order('name'),
-sb.from('reminders').select('*').order('created_at',{ascending:false})
-]);for(let r of[a,b,c,d,e,f,g,h,i,j])if(r.error)throw r.error;
-parts=a.data;supply=b.data;suppliers=c.data;bomItems=d.data;units=e.data;tasks=f.data;tests=g.data;wiki=h.data;vendors=i.data||[];reminders=j.data||[];$('vendorList').innerHTML=vendors.map(v=>`<option value="${esc(v.name)}"></option>`).join('');renderAll()
+sb.from('reminders').select('*').order('created_at',{ascending:false}),
+sb.from('misc_expenses').select('*').order('expense_date',{ascending:false}).order('created_at',{ascending:false}),
+sb.from('misc_expense_attachments').select('*').order('uploaded_at',{ascending:false})
+]);for(let r of[a,b,c,d,e,f,g,h,i,j,k,l])if(r.error)throw r.error;
+parts=a.data;supply=b.data;suppliers=c.data;bomItems=d.data;units=e.data;tasks=f.data;tests=g.data;wiki=h.data;vendors=i.data||[];reminders=j.data||[];miscExpenses=k.data||[];miscExpenseAttachments=l.data||[];$('vendorList').innerHTML=vendors.map(v=>`<option value="${esc(v.name)}"></option>`).join('');renderAll()
 }catch(e){alert('RIS load error: '+e.message)}}
 $('refreshBtn').onclick=loadAll;
 
@@ -526,9 +605,10 @@ async function deleteWhereUsed(id){
 }
 
 
-let partDlgPressStartedOutside=false;
-partDlg.addEventListener('pointerdown',e=>{let r=partDlg.getBoundingClientRect();partDlgPressStartedOutside=!(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)});
-partDlg.addEventListener('click',e=>{let r=partDlg.getBoundingClientRect(),outside=!(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom);if(partDlgPressStartedOutside&&outside)partDlg.close('cancel');partDlgPressStartedOutside=false});
+let partDlgBackdropDown=false;
+partDlg.addEventListener('pointerdown',e=>{partDlgBackdropDown=(e.target===partDlg)});
+partDlg.addEventListener('pointerup',e=>{if(partDlgBackdropDown&&e.target===partDlg)partDlg.close('cancel');partDlgBackdropDown=false});
+partDlg.addEventListener('pointercancel',()=>{partDlgBackdropDown=false});
 $('addPartBtn').onclick=()=>openPart(null);
 function openPart(id){editingPart=id?partVM(parts.find(p=>p.id===id)):null;$('partDlgTitle').textContent=id?'Edit '+editingPart.part_number:'Add Part';let x=editingPart||{};$('fDesc').value=x.description||'';$('fItemType').value=x.item_type||'part';$('fCat').value=x.category||'';$('fMfr').value=x.manufacturer||'';$('fMpn').value=x.manufacturer_part_number||'';$('fMfrBarcode').value=x.manufacturer_barcode||'';$('fSmallLabel').checked=!!x.small_label;$('fVendor').value=x.vendor||'';$('fVpn').value=x.vendorPart||'';$('fUrl').value=x.url||'';$('fCost').value=x.cost??'';$('fVendor2').value=x.vendor2||'';$('fVpn2').value=x.vendorPart2||'';$('fUrl2').value=x.url2||'';$('fCost2').value=x.cost2??'';$('fRetail').value=x.retail??'';$('fMarkup').value=x.markup??'';$('fNeeded').value=x.needed??1;$('fKeep').value=x.keep_in_inventory??0;
 let isShop=(x.item_type||'part')==='shop_supply';$('fNeededWrap').classList.toggle('hidden',isShop);$('fKeepWrap').classList.toggle('hidden',!isShop);
@@ -797,6 +877,7 @@ $('saveReceiveOrderBtn').onclick=async()=>{
   }
   receiveOrderDlg.close();
   await loadAll();
+  if(document.querySelector('.tabbtn.active')?.dataset.tab==='ordersTab')await loadOrderHistory();
   if(doPrint){
     if(Number.isInteger(qty)&&qty>0)printLabels('PART',part.part_number,part.description,qty,!!part.small_label);
     else alert('Receipt saved. Barcode labels were not printed because the received quantity is not a whole number.')
@@ -808,11 +889,142 @@ $('activeOrderFileInput').onchange=async()=>{if(!attachmentPOId||!$('activeOrder
 let editingPO=null,editingPOLines=[];
 async function openOrderEdit(poId){let [poRes,itemRes]=await Promise.all([sb.from('purchase_orders').select('id,po_number,status,order_date,notes,vendor_id,vendors(name)').eq('id',poId).single(),sb.from('purchase_order_item_status').select('*').eq('purchase_order_id',poId).order('ordered_at')]);if(poRes.error)return alert(poRes.error.message);if(itemRes.error)return alert(itemRes.error.message);let ids=itemRes.data.map(x=>x.purchase_order_item_id),detail=ids.length?await sb.from('purchase_order_items').select('id,part_id,quantity_ordered,unit_cost,expected_date').in('id',ids):{data:[],error:null};if(detail.error)return alert(detail.error.message);editingPO=poRes.data;editingPOLines=(detail.data||[]).map(d=>({...d,received:num(itemRes.data.find(x=>x.purchase_order_item_id===d.id)?.quantity_received)}));$('editOrderVendor').value=editingPO.vendors?.name||'';$('editOrderDate').value=editingPO.order_date||'';$('editOrderNotes').value=editingPO.notes||'';renderOrderEditLines();activeOrderDlg.close();orderEditDlg.showModal()}
 function renderOrderEditLines(){$('editOrderLines').innerHTML=editingPOLines.map((l,i)=>{let p=parts.find(x=>x.id===l.part_id);return `<div class="order-line-edit"><div class="order-desc"><b>${esc(p?.part_number||'')}</b><div>${esc(p?.description||'')}</div><div class="muted">Received: ${l.received}</div></div><label>Qty<input data-eqty="${i}" type="number" min="${l.received||0}" step=".01" value="${l.quantity_ordered}"></label><label>Unit Price<input data-ecost="${i}" type="number" min="0" step=".01" value="${l.unit_cost??''}"></label><label>ETA<input data-eeta="${i}" type="date" value="${l.expected_date||''}"></label><button class="danger small" data-eremove="${i}" ${l.received>0?'disabled title="Cannot remove a received line"':''}>Remove</button></div>`}).join('');document.querySelectorAll('[data-eremove]').forEach(b=>b.onclick=()=>{let i=Number(b.dataset.eremove);if(editingPOLines[i].received>0)return;if(confirm('Remove this line from the order?')){editingPOLines.splice(i,1);renderOrderEditLines()}})}
-$('saveOrderEditBtn').onclick=async()=>{if(!editingPO)return;editingPOLines.forEach((l,i)=>{l.quantity_ordered=num(document.querySelector(`[data-eqty="${i}"]`).value);let c=document.querySelector(`[data-ecost="${i}"]`).value;l.unit_cost=c===''?null:num(c);l.expected_date=document.querySelector(`[data-eeta="${i}"]`).value||null});let lines=editingPOLines.map(l=>({id:l.id,part_id:l.part_id,quantity:l.quantity_ordered,unit_cost:l.unit_cost,expected_date:l.expected_date}));let r=await sb.rpc('ris_update_purchase_order',{p_purchase_order_id:editingPO.id,p_vendor_name:$('editOrderVendor').value.trim(),p_order_date:$('editOrderDate').value||null,p_notes:$('editOrderNotes').value.trim()||null,p_lines:lines});if(r.error)return alert('Edit order failed: '+r.error.message);orderEditDlg.close();await loadAll();if(activeOrderPart)openActiveOrders(activeOrderPart.id)};
-async function cancelOrder(poId){if(!confirm('Are you sure you want to cancel this order? Received inventory will stay in inventory, and remaining quantities will stop counting as On Order.'))return;let r=await sb.rpc('ris_cancel_purchase_order',{p_purchase_order_id:poId});if(r.error)return alert(r.error.message);await loadAll();if(activeOrderPart)openActiveOrders(activeOrderPart.id)}
+$('saveOrderEditBtn').onclick=async()=>{if(!editingPO)return;editingPOLines.forEach((l,i)=>{l.quantity_ordered=num(document.querySelector(`[data-eqty="${i}"]`).value);let c=document.querySelector(`[data-ecost="${i}"]`).value;l.unit_cost=c===''?null:num(c);l.expected_date=document.querySelector(`[data-eeta="${i}"]`).value||null});let lines=editingPOLines.map(l=>({id:l.id,part_id:l.part_id,quantity:l.quantity_ordered,unit_cost:l.unit_cost,expected_date:l.expected_date}));let r=await sb.rpc('ris_update_purchase_order',{p_purchase_order_id:editingPO.id,p_vendor_name:$('editOrderVendor').value.trim(),p_order_date:$('editOrderDate').value||null,p_notes:$('editOrderNotes').value.trim()||null,p_lines:lines});if(r.error)return alert('Edit order failed: '+r.error.message);orderEditDlg.close();await loadAll();if(document.querySelector('.tabbtn.active')?.dataset.tab==='ordersTab')await loadOrderHistory();if(activeOrderPart)openActiveOrders(activeOrderPart.id)};
+async function cancelOrder(poId){if(!confirm('Are you sure you want to cancel this order? Received inventory will stay in inventory, and remaining quantities will stop counting as On Order.'))return;let r=await sb.rpc('ris_cancel_purchase_order',{p_purchase_order_id:poId});if(r.error)return alert(r.error.message);await loadAll();if(document.querySelector('.tabbtn.active')?.dataset.tab==='ordersTab')await loadOrderHistory();if(activeOrderPart)openActiveOrders(activeOrderPart.id)}
 
 async function openOrderAttachment(id){let a=activeOrderAttachments.find(x=>x.id===id);if(!a)return;let r=await sb.storage.from('ris-order-documents').createSignedUrl(a.storage_path,3600);if(r.error)return alert(r.error.message);window.open(r.data.signedUrl,'_blank','noopener')}
 async function deleteOrderAttachment(id){let a=activeOrderAttachments.find(x=>x.id===id);if(!a||!confirm('Delete attachment \"'+a.file_name+'\"?'))return;let d=await sb.from('purchase_order_attachments').delete().eq('id',id);if(d.error)return alert(d.error.message);let s=await sb.storage.from('ris-order-documents').remove([a.storage_path]);if(s.error)alert('Database record deleted, but the stored file could not be removed: '+s.error.message);await openActiveOrders(activeOrderPart.id)}
+
+
+// ---------- R078 Order History ----------
+function showOrderHistoryModal(){$('orderHistoryDlg').classList.remove('hidden');$('orderHistoryDlg').setAttribute('aria-hidden','false')}
+function closeOrderHistoryDetail(){$('orderHistoryDlg').classList.add('hidden');$('orderHistoryDlg').setAttribute('aria-hidden','true');currentOrderHistoryPO=null}
+$('closeOrderHistoryBtn').onclick=closeOrderHistoryDetail;
+$('orderHistoryDlg').addEventListener('click',e=>{if(e.target===$('orderHistoryDlg'))closeOrderHistoryDetail()});
+
+async function loadOrderHistory(){
+  let [poRes,itemRes,statusRes,attRes]=await Promise.all([
+    sb.from('purchase_orders').select('id,po_number,status,order_date,expected_date,notes,vendor_id,created_at,updated_at,vendors(name)').order('order_date',{ascending:false}).order('created_at',{ascending:false}),
+    sb.from('purchase_order_items').select('id,purchase_order_id,part_id,quantity_ordered,unit_cost,notes,ordered_at,expected_date,vendor_eta_text,parts(part_number,description)'),
+    sb.from('purchase_order_item_status').select('*'),
+    sb.from('purchase_order_attachments').select('*').order('uploaded_at',{ascending:false})
+  ]);
+  for(let r of [poRes,itemRes,statusRes,attRes])if(r.error)return alert('Could not load order history: '+r.error.message);
+  orderHistoryPOs=poRes.data||[];orderHistoryItems=itemRes.data||[];orderHistoryStatus=statusRes.data||[];orderHistoryAttachments=attRes.data||[];
+  renderOrderHistory();
+}
+function orderHistoryVM(po){
+  let items=orderHistoryItems.filter(x=>x.purchase_order_id===po.id);
+  let statuses=orderHistoryStatus.filter(x=>x.purchase_order_id===po.id);
+  let atts=orderHistoryAttachments.filter(x=>x.purchase_order_id===po.id);
+  let total=items.reduce((a,x)=>a+num(x.quantity_ordered)*num(x.unit_cost),0);
+  let etas=items.map(x=>x.expected_date).filter(Boolean).sort();
+  let search=[po.po_number,po.vendors?.name,po.notes,...items.flatMap(x=>[x.parts?.part_number,x.parts?.description,x.notes])].filter(Boolean).join(' ').toLowerCase();
+  return {...po,items,statuses,atts,total,next_eta:etas[0]||po.expected_date||'',search};
+}
+function renderOrderHistory(){
+  let q=$('ordersSearch').value.trim().toLowerCase(),st=$('ordersStatus').value,from=$('ordersFrom').value,to=$('ordersTo').value;
+  let rows=orderHistoryPOs.map(orderHistoryVM).filter(x=>(!q||x.search.includes(q))&&(!st||x.status===st)&&(!from||x.order_date>=from)&&(!to||x.order_date<=to));
+  $('ordersBody').innerHTML=rows.map(x=>`<tr><td><b>${esc(x.po_number)}</b></td><td>${esc(x.vendors?.name||'—')}</td><td>${esc(x.order_date||'—')}</td><td>${esc(statusLabel(x.status)||x.status)}</td><td class="num">${x.items.length}</td><td class="num">${money(x.total)}</td><td>${esc(x.next_eta||'—')}</td><td class="num">${x.atts.length}</td><td><button class="small primary" data-openhistorypo="${x.id}">Open</button></td></tr>`).join('');
+  $('ordersCount').textContent=rows.length;
+  $('ordersValue').textContent=money(rows.reduce((a,x)=>a+x.total,0));
+  $('ordersOpen').textContent=rows.filter(x=>x.status==='submitted'||x.status==='partial').length;
+  $('ordersReceived').textContent=rows.filter(x=>x.status==='received').length;
+  document.querySelectorAll('[data-openhistorypo]').forEach(b=>b.onclick=()=>openOrderHistoryDetail(b.dataset.openhistorypo));
+}
+['ordersSearch','ordersStatus','ordersFrom','ordersTo'].forEach(id=>$(id).addEventListener(id==='ordersSearch'?'input':'change',renderOrderHistory));
+$('ordersRefreshBtn').onclick=loadOrderHistory;
+
+function openOrderHistoryDetail(poId){
+  let po=orderHistoryPOs.find(x=>x.id===poId);if(!po)return;
+  let x=orderHistoryVM(po);currentOrderHistoryPO=x;
+  $('orderHistoryTitle').textContent=`Order ${x.po_number}`;
+  let statusMap=Object.fromEntries(x.statuses.map(s=>[s.purchase_order_item_id,s]));
+  $('orderHistoryDetail').innerHTML=`
+    <div class="grid2">
+      <div><span class="muted">Supplier</span><br><b>${esc(x.vendors?.name||'—')}</b></div>
+      <div><span class="muted">Status</span><br><b>${esc(statusLabel(x.status)||x.status)}</b></div>
+      <div><span class="muted">Order Date</span><br>${esc(x.order_date||'—')}</div>
+      <div><span class="muted">Order Value</span><br><b>${money(x.total)}</b></div>
+    </div>
+    ${x.notes?`<p><b>Notes:</b> ${esc(x.notes)}</p>`:''}
+    <h3>Line Items</h3>
+    <div class="tablewrap"><table><thead><tr><th>Part</th><th>Description</th><th class="num">Ordered</th><th class="num">Received</th><th class="num">Outstanding</th><th class="num">Unit Cost</th><th>ETA</th><th></th></tr></thead><tbody>
+    ${x.items.map(it=>{let s=statusMap[it.id]||{};return `<tr><td><b>${esc(it.parts?.part_number||'')}</b></td><td>${esc(it.parts?.description||'')}</td><td class="num">${num(it.quantity_ordered)}</td><td class="num">${num(s.quantity_received)}</td><td class="num">${num(s.quantity_outstanding)}</td><td class="num">${money(it.unit_cost)}</td><td>${esc(it.expected_date||'—')}</td><td>${(x.status==='submitted'||x.status==='partial')&&num(s.quantity_outstanding)>0?`<button class="small primary" data-historyreceive="${it.id}" data-part="${it.part_id}">Receive</button>`:''}</td></tr>`}).join('')}
+    </tbody></table></div>
+    <h3>Attachments</h3>
+    <div>${x.atts.length?x.atts.map(a=>`<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:6px 0"><span>${esc(a.file_name)}</span><button class="small" data-historyopenatt="${a.id}">Open</button></div>`).join(''):'<span class="muted">No attachments</span>'}</div>
+    <div class="row" style="margin-top:12px">
+      <button class="small" id="historyAddAttachmentBtn">+ Add Attachment</button>
+      ${(x.status!=='received'&&x.status!=='cancelled')?`<button class="small" id="historyEditOrderBtn">Edit Order</button><button class="small danger" id="historyCancelOrderBtn">Cancel Order</button>`:''}
+    </div>`;
+  document.querySelectorAll('[data-historyopenatt]').forEach(b=>b.onclick=async()=>{let a=orderHistoryAttachments.find(z=>z.id===b.dataset.historyopenatt);if(!a)return;let r=await sb.storage.from('ris-order-documents').createSignedUrl(a.storage_path,3600);if(r.error)return alert(r.error.message);window.open(r.data.signedUrl,'_blank','noopener')});
+  document.querySelectorAll('[data-historyreceive]').forEach(b=>b.onclick=()=>{let itemId=b.dataset.historyreceive,partId=b.dataset.part;activeOrderPart=partVM(parts.find(p=>p.id===partId));activeOrderRows=x.statuses;activeOrderPOs=[po];activeOrderAttachments=x.atts;closeOrderHistoryDetail();openReceiveOrder(itemId)});
+  $('historyAddAttachmentBtn').onclick=()=>{$('orderHistoryFileInput').value='';$('orderHistoryFileInput').click()};
+  if($('historyEditOrderBtn'))$('historyEditOrderBtn').onclick=()=>{activeOrderPart=null;closeOrderHistoryDetail();openOrderEdit(po.id)};
+  if($('historyCancelOrderBtn'))$('historyCancelOrderBtn').onclick=async()=>{activeOrderPart=null;closeOrderHistoryDetail();await cancelOrder(po.id);await loadOrderHistory()};
+  showOrderHistoryModal();
+}
+$('orderHistoryFileInput').onchange=async()=>{if(!currentOrderHistoryPO||!$('orderHistoryFileInput').files.length)return;try{await uploadOrderFiles(currentOrderHistoryPO.id,$('orderHistoryFileInput').files);let id=currentOrderHistoryPO.id;await loadOrderHistory();openOrderHistoryDetail(id)}catch(e){alert('Attachment upload failed: '+e.message)}};
+
+// ---------- R077 Misc Expenses ----------
+function miscExpenseTotal(x){return num(x.amount)+num(x.tax)}
+function miscFiltered(){
+  let q=$('miscSearch').value.trim().toLowerCase(),cat=$('miscCategoryFilter').value,from=$('miscFrom').value,to=$('miscTo').value;
+  return miscExpenses.filter(x=>{
+    let text=[x.vendor_payee,x.description,x.category,x.project_reference,x.payment_method,x.notes].filter(Boolean).join(' ').toLowerCase();
+    return (!q||text.includes(q))&&(!cat||x.category===cat)&&(!from||x.expense_date>=from)&&(!to||x.expense_date<=to)
+  });
+}
+function renderMiscExpenses(){
+  let cats=[...new Set(miscExpenses.map(x=>x.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  let current=$('miscCategoryFilter').value;
+  $('miscCategoryFilter').innerHTML='<option value="">All Categories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  $('miscCategoryFilter').value=cats.includes(current)?current:'';
+  $('miscCategoryList').innerHTML=cats.map(c=>`<option value="${esc(c)}"></option>`).join('');
+  let rows=miscFiltered();
+  $('miscExpensesBody').innerHTML=rows.map(x=>`<tr><td>${esc(x.expense_date)}</td><td>${esc(x.vendor_payee||'—')}</td><td>${esc(x.description)}</td><td>${esc(x.category||'—')}</td><td>${esc(x.project_reference||'—')}</td><td class="num">${money(x.amount)}</td><td class="num">${money(x.tax)}</td><td class="num"><b>${money(miscExpenseTotal(x))}</b></td><td>${esc(x.payment_method||'—')}</td><td><button class="small" data-editexpense="${x.id}">Open</button></td></tr>`).join('');
+  $('miscCount').textContent=rows.length;$('miscSubtotal').textContent=money(rows.reduce((a,x)=>a+num(x.amount),0));$('miscTax').textContent=money(rows.reduce((a,x)=>a+num(x.tax),0));$('miscTotal').textContent=money(rows.reduce((a,x)=>a+miscExpenseTotal(x),0));
+  document.querySelectorAll('[data-editexpense]').forEach(b=>b.onclick=()=>openMiscExpense(b.dataset.editexpense));
+}
+['miscSearch','miscCategoryFilter','miscFrom','miscTo'].forEach(id=>$(id).addEventListener(id==='miscSearch'?'input':'change',renderMiscExpenses));
+$('miscRefreshBtn').onclick=loadAll;
+$('addMiscExpenseBtn').onclick=()=>openMiscExpense(null);
+function showMiscExpenseModal(){$('miscExpenseDlg').classList.remove('hidden');$('miscExpenseDlg').setAttribute('aria-hidden','false')}
+function closeMiscExpenseModal(){$('miscExpenseDlg').classList.add('hidden');$('miscExpenseDlg').setAttribute('aria-hidden','true');editingMiscExpense=null}
+$('miscExpenseCancelBtn').onclick=closeMiscExpenseModal;
+$('miscExpenseDlg').addEventListener('click',e=>{if(e.target===$('miscExpenseDlg'))closeMiscExpenseModal()});
+function renderMiscAttachmentList(){
+  let atts=editingMiscExpense?miscExpenseAttachments.filter(a=>a.misc_expense_id===editingMiscExpense.id):[];
+  $('meExistingAttachments').innerHTML=atts.length?'<b>Existing attachments</b>'+atts.map(a=>`<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:5px 0"><span>${esc(a.file_name)}</span><span><button type="button" class="small" data-openmeatt="${a.id}">Open</button> <button type="button" class="small danger" data-delmeatt="${a.id}">Delete</button></span></div>`).join(''):'';
+  document.querySelectorAll('[data-openmeatt]').forEach(b=>b.onclick=()=>openMiscExpenseAttachment(b.dataset.openmeatt));
+  document.querySelectorAll('[data-delmeatt]').forEach(b=>b.onclick=()=>deleteMiscExpenseAttachment(b.dataset.delmeatt));
+}
+function openMiscExpense(id){
+  editingMiscExpense=id?miscExpenses.find(x=>x.id===id):null;let x=editingMiscExpense||{};
+  $('miscExpenseDlgTitle').textContent=id?'Edit Expense':'Add Expense';$('meDate').value=x.expense_date||localDateValue();$('meVendor').value=x.vendor_payee||'';$('meDescription').value=x.description||'';$('meCategory').value=x.category||'';$('meProject').value=x.project_reference||'';$('meAmount').value=x.amount??'';$('meTax').value=x.tax??0;$('mePayment').value=x.payment_method||'';$('meNotes').value=x.notes||'';$('meFiles').value='';$('miscExpenseDeleteBtn').classList.toggle('hidden',!id);renderMiscAttachmentList();showMiscExpenseModal()
+}
+async function uploadMiscExpenseFiles(expenseId,fileList){
+  for(let f of Array.from(fileList||[])){if(f.size>20*1024*1024)throw new Error(`${f.name} is larger than the 20 MB attachment limit.`);let path=`misc-expenses/${expenseId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${safeFileName(f.name)}`;let up=await sb.storage.from('ris-order-documents').upload(path,f,{cacheControl:'3600',upsert:false,contentType:f.type||undefined});if(up.error)throw up.error;let ins=await sb.from('misc_expense_attachments').insert({misc_expense_id:expenseId,file_name:f.name,storage_path:path,mime_type:f.type||null,size_bytes:f.size});if(ins.error){await sb.storage.from('ris-order-documents').remove([path]);throw ins.error}}
+}
+$('miscExpenseSaveBtn').onclick=async()=>{
+  let description=$('meDescription').value.trim();if(!description)return alert('Description is required.');
+  let payload={expense_date:$('meDate').value||localDateValue(),vendor_payee:$('meVendor').value.trim()||null,description,category:$('meCategory').value.trim()||null,project_reference:$('meProject').value.trim()||null,amount:num($('meAmount').value),tax:num($('meTax').value),payment_method:$('mePayment').value.trim()||null,notes:$('meNotes').value.trim()||null,updated_at:new Date().toISOString()};
+  let r=editingMiscExpense?await sb.from('misc_expenses').update(payload).eq('id',editingMiscExpense.id).select().single():await sb.from('misc_expenses').insert(payload).select().single();
+  if(r.error)return alert('Expense save failed: '+r.error.message);
+  try{if($('meFiles').files.length)await uploadMiscExpenseFiles(r.data.id,$('meFiles').files)}catch(e){alert('Expense saved, but attachment upload failed: '+e.message)}
+  closeMiscExpenseModal();await loadAll()
+};
+$('miscExpenseDeleteBtn').onclick=async()=>{
+  if(!editingMiscExpense||!confirm(`Delete expense "${editingMiscExpense.description}"? This will also delete its stored attachments.`))return;
+  let atts=miscExpenseAttachments.filter(a=>a.misc_expense_id===editingMiscExpense.id);
+  if(atts.length){let s=await sb.storage.from('ris-order-documents').remove(atts.map(a=>a.storage_path));if(s.error)return alert('Could not delete stored attachments: '+s.error.message)}
+  let d=await sb.from('misc_expenses').delete().eq('id',editingMiscExpense.id);if(d.error)return alert(d.error.message);
+  closeMiscExpenseModal();await loadAll()
+};
+async function openMiscExpenseAttachment(id){let a=miscExpenseAttachments.find(x=>x.id===id);if(!a)return;let r=await sb.storage.from('ris-order-documents').createSignedUrl(a.storage_path,3600);if(r.error)return alert(r.error.message);window.open(r.data.signedUrl,'_blank','noopener')}
+async function deleteMiscExpenseAttachment(id){let a=miscExpenseAttachments.find(x=>x.id===id);if(!a||!confirm(`Delete attachment "${a.file_name}"?`))return;let s=await sb.storage.from('ris-order-documents').remove([a.storage_path]);if(s.error)return alert(s.error.message);let d=await sb.from('misc_expense_attachments').delete().eq('id',id);if(d.error)return alert(d.error.message);await loadAll();if(editingMiscExpense){editingMiscExpense=miscExpenses.find(x=>x.id===editingMiscExpense.id);renderMiscAttachmentList()}}
+$('exportMiscBtn').onclick=()=>{let rows=miscFiltered(),data=[['Date','Vendor / Payee','Description','Category','Project / Job','Amount','Tax','Total','Payment Method','Notes']];rows.forEach(x=>data.push([x.expense_date,x.vendor_payee||'',x.description,x.category||'',x.project_reference||'',num(x.amount).toFixed(2),num(x.tax).toFixed(2),miscExpenseTotal(x).toFixed(2),x.payment_method||'',x.notes||'']));downloadCSV(data,'RIS-misc-expenses.csv')};
 
 $('exportPartsBtn').onclick=()=>exportDlg.showModal();
 function csvCell(v){let s=String(v??'');return /[",\n]/.test(s)?'"'+s.replaceAll('"','""')+'"':s}
@@ -995,8 +1207,8 @@ function reminderSort(a,b){if(a.is_complete!==b.is_complete)return a.is_complete
 function renderReminders(){let v=[...reminders].sort(reminderSort);$('remindersList').innerHTML=v.length?v.map(r=>`<div class="reminder-card ${r.is_complete?'complete':''} ${r.is_pinned&&!r.is_complete?'pinned':''}"><div class="row"><b style="margin-right:auto">${r.is_pinned&&!r.is_complete?'📌 ':''}${esc(r.title)}</b>${r.is_complete?'<span class="tag">Complete</span>':''}</div><div class="reminder-note">${esc(r.note||'')}</div><div class="reminder-meta">Created ${dt(r.created_at)}</div><div class="row" style="margin-top:8px"><button data-rpin="${r.id}">${r.is_pinned?'Unpin':'Pin'}</button><button data-rcomplete="${r.id}">${r.is_complete?'Reopen':'Mark Complete'}</button><button class="danger" data-rdelete="${r.id}">Delete</button></div></div>`).join(''):'<div class="muted">No reminders yet.</div>';document.querySelectorAll('[data-rpin]').forEach(b=>b.onclick=async()=>{let r=reminders.find(x=>x.id===b.dataset.rpin),q=await sb.from('reminders').update({is_pinned:!r.is_pinned,updated_at:new Date().toISOString()}).eq('id',r.id);if(q.error)return alert(q.error.message);await loadAll()});document.querySelectorAll('[data-rcomplete]').forEach(b=>b.onclick=async()=>{let r=reminders.find(x=>x.id===b.dataset.rcomplete),val=!r.is_complete,q=await sb.from('reminders').update({is_complete:val,completed_at:val?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq('id',r.id);if(q.error)return alert(q.error.message);await loadAll()});document.querySelectorAll('[data-rdelete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this reminder?'))return;let q=await sb.from('reminders').delete().eq('id',b.dataset.rdelete);if(q.error)return alert(q.error.message);await loadAll()})}
 $('saveReminderBtn').onclick=async()=>{let title=$('reminderTitle').value.trim();if(!title)return alert('Enter a title.');let r=await sb.from('reminders').insert({title,note:$('reminderNote').value.trim()||null});if(r.error)return alert(r.error.message);$('reminderTitle').value='';$('reminderNote').value='';await loadAll()};
 
-function renderAll(){renderParts();renderHardware();renderShopSupplies();renderElectrical();renderUnits();renderTasks();renderTests();renderWiki();renderReminders();if(currentUnit){currentUnit=units.find(x=>x.id===currentUnit.id);if(currentUnit)selectUnit(currentUnit)}}
-document.querySelectorAll('.tabbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabbtn').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
+function renderAll(){renderParts();renderHardware();renderShopSupplies();renderElectrical();renderUnits();renderTasks();renderTests();renderWiki();renderReminders();renderMiscExpenses();if(currentUnit){currentUnit=units.find(x=>x.id===currentUnit.id);if(currentUnit)selectUnit(currentUnit)}}
+document.querySelectorAll('.tabbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabbtn').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));if(b.dataset.tab==='ordersTab')loadOrderHistory()});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 </script>
 </body>
