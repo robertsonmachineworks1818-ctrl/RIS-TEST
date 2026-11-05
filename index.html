@@ -123,7 +123,7 @@ body.hide-pricing .pricing-col{display:none!important}
 <label><input id="filtRed" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--red);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> No stock / insufficient incoming</label>
 <button class="small" id="allStatesBtn">All</button>
 </div>
-<div class="toolbar"><input id="search" placeholder="Search parts…" size="30"><input id="whereUsedFilter" list="whereUsedOptionsList" placeholder="Filter Where Used…" size="22"><label>Units in run <input id="runUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addPartBtn">+ Add Part</button><button id="receiptLogBtn">Receiving Log</button><button id="orderLogBtn">Order Log</button><button id="exportPartsBtn">Export</button><button class="primary bulkOrderLaunch" id="bulkOrderBtn">+ Add Bulk Order</button><button id="refreshBtn">Refresh</button></div>
+<div class="toolbar"><input id="search" placeholder="Search parts…" size="30"><input id="whereUsedFilter" list="partsWhereUsedFilterList" placeholder="Filter Where Used…" size="22"><label>Units in run <input id="runUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addPartBtn">+ Add Part</button><button id="receiptLogBtn">Receiving Log</button><button id="orderLogBtn">Order Log</button><button id="exportPartsBtn">Export</button><button class="primary bulkOrderLaunch" id="bulkOrderBtn">+ Add Bulk Order</button><button id="refreshBtn">Refresh</button></div>
 <div class="tablewrap"><table><thead><tr><th class="sortable" data-sort="part_number">Part</th><th class="sortable" data-sort="description">Description</th><th class="sortable" data-sort="whereUsedName">Where Used</th><th class="sortable" data-sort="vendor">Primary Supplier</th><th class="sortable" data-sort="vendor2">Secondary Supplier</th><th>Link</th><th class="sortable num" data-sort="on_hand">On Hand</th><th class="sortable num" data-sort="needed"># Needed/Unit</th><th class="sortable num" data-sort="remaining">Required</th><th class="sortable num" data-sort="on_order">On Order</th><th>Actions</th></tr></thead><tbody id="partsBody"></tbody></table></div>
 </section>
 
@@ -136,7 +136,7 @@ body.hide-pricing .pricing-col{display:none!important}
 <label><input id="hwFiltRed" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--red);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> No stock / insufficient incoming</label>
 <button class="small" id="hwAllStatesBtn">All</button>
 </div>
-<div class="toolbar"><input id="hardwareSearch" placeholder="Search hardware…" size="30"><input id="hardwareWhereUsedFilter" list="whereUsedOptionsList" placeholder="Filter Where Used…" size="22"><label>Units in run <input id="hardwareRunUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addHardwareBtn">+ Add Hardware</button><button id="hardwareReceiptLogBtn">Receiving Log</button><button id="hardwareOrderLogBtn">Order Log</button><button class="primary bulkOrderLaunch">+ Add Bulk Order</button><button id="hardwareRefreshBtn">Refresh</button></div>
+<div class="toolbar"><input id="hardwareSearch" placeholder="Search hardware…" size="30"><input id="hardwareWhereUsedFilter" list="hardwareWhereUsedFilterList" placeholder="Filter Where Used…" size="22"><label>Units in run <input id="hardwareRunUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addHardwareBtn">+ Add Hardware</button><button id="hardwareReceiptLogBtn">Receiving Log</button><button id="hardwareOrderLogBtn">Order Log</button><button class="primary bulkOrderLaunch">+ Add Bulk Order</button><button id="hardwareRefreshBtn">Refresh</button></div>
 <div class="tablewrap"><table><thead><tr><th class="hwsortable" data-sort="part_number">Part</th><th class="hwsortable" data-sort="description">Description</th><th class="hwsortable" data-sort="whereUsedName">Where Used</th><th class="hwsortable" data-sort="vendor">Primary Supplier</th><th class="hwsortable" data-sort="vendor2">Secondary Supplier</th><th>Link</th><th class="hwsortable num" data-sort="on_hand">On Hand</th><th class="hwsortable num" data-sort="needed"># Needed/Unit</th><th class="hwsortable num" data-sort="remaining">Required</th><th class="hwsortable num" data-sort="on_order">On Order</th><th>Actions</th></tr></thead><tbody id="hardwareBody"></tbody></table></div>
 </section>
 
@@ -162,7 +162,7 @@ body.hide-pricing .pricing-col{display:none!important}
 <label><input id="elFiltRed" type="checkbox" checked> <i style="display:inline-block;width:12px;height:12px;background:var(--red);border:1px solid #bbb;border-radius:3px;vertical-align:-2px"></i> No stock / insufficient incoming</label>
 <button class="small" id="elAllStatesBtn">All</button>
 </div>
-<div class="toolbar"><input id="electricalSearch" placeholder="Search electrical…" size="30"><input id="electricalWhereUsedFilter" list="whereUsedOptionsList" placeholder="Filter Where Used…" size="22"><label>Units in run <input id="electricalRunUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addElectricalBtn">+ Add Electrical Item</button><button id="electricalReceiptLogBtn">Receiving Log</button><button id="electricalOrderLogBtn">Order Log</button><button id="electricalExportBtn">Export</button><button class="primary bulkOrderLaunch">+ Add Bulk Order</button><button id="electricalRefreshBtn">Refresh</button></div>
+<div class="toolbar"><input id="electricalSearch" placeholder="Search electrical…" size="30"><input id="electricalWhereUsedFilter" list="electricalWhereUsedFilterList" placeholder="Filter Where Used…" size="22"><label>Units in run <input id="electricalRunUnits" type="number" min="1" value="1" style="width:80px"></label><button class="primary" id="addElectricalBtn">+ Add Electrical Item</button><button id="electricalReceiptLogBtn">Receiving Log</button><button id="electricalOrderLogBtn">Order Log</button><button id="electricalExportBtn">Export</button><button class="primary bulkOrderLaunch">+ Add Bulk Order</button><button id="electricalRefreshBtn">Refresh</button></div>
 <div class="tablewrap"><table><thead><tr><th class="elsortable" data-sort="part_number">Part</th><th class="elsortable" data-sort="description">Description</th><th class="elsortable" data-sort="whereUsedName">Where Used</th><th class="elsortable" data-sort="vendor">Primary Supplier</th><th class="elsortable" data-sort="vendor2">Secondary Supplier</th><th>Link</th><th class="elsortable num" data-sort="on_hand">On Hand</th><th class="elsortable num" data-sort="needed"># Needed/Unit</th><th class="elsortable num" data-sort="remaining">Required</th><th class="elsortable num" data-sort="on_order">On Order</th><th>Actions</th></tr></thead><tbody id="electricalBody"></tbody></table></div>
 </section>
 
@@ -351,6 +351,9 @@ body.hide-pricing .pricing-col{display:none!important}
 <div class="wide row" style="justify-content:flex-end"><button value="cancel">Cancel</button><button type="button" class="primary" id="savePartBtn">Save</button></div></form></dialog>
 <datalist id="vendorList"></datalist>
 <datalist id="whereUsedOptionsList"></datalist>
+<datalist id="partsWhereUsedFilterList"></datalist>
+<datalist id="hardwareWhereUsedFilterList"></datalist>
+<datalist id="electricalWhereUsedFilterList"></datalist>
 
 
 <dialog id="whereUsedDlg" style="max-width:900px"><h2 id="whereUsedTitle">Where Used</h2>
@@ -451,7 +454,12 @@ sb.from('misc_expenses').select('*').order('expense_date',{ascending:false}).ord
 sb.from('misc_expense_attachments').select('*').order('uploaded_at',{ascending:false}),
 sb.from('where_used_options').select('*').eq('active',true).order('name')
 ]);for(let r of[a,b,c,d,e,f,g,h,i,j,k,l,m])if(r.error)throw r.error;
-parts=a.data;supply=b.data;suppliers=c.data;bomItems=d.data;units=e.data;tasks=f.data;tests=g.data;wiki=h.data;vendors=i.data||[];reminders=j.data||[];miscExpenses=k.data||[];miscExpenseAttachments=l.data||[];whereUsedOptions=m.data||[];$('vendorList').innerHTML=vendors.map(v=>`<option value="${esc(v.name)}"></option>`).join('');$('whereUsedOptionsList').innerHTML=whereUsedOptions.map(w=>`<option value="${esc(w.name)}"></option>`).join('');renderAll()
+parts=a.data;supply=b.data;suppliers=c.data;bomItems=d.data;units=e.data;tasks=f.data;tests=g.data;wiki=h.data;vendors=i.data||[];reminders=j.data||[];miscExpenses=k.data||[];miscExpenseAttachments=l.data||[];whereUsedOptions=m.data||[];$('vendorList').innerHTML=vendors.map(v=>`<option value="${esc(v.name)}"></option>`).join('');$('whereUsedOptionsList').innerHTML=whereUsedOptions.map(w=>`<option value="${esc(w.name)}"></option>`).join('');
+function usedWhereUsedNamesFor(type){let ids=new Set(parts.filter(p=>(p.item_type||'part')===type&&p.where_used_id).map(p=>p.where_used_id));return whereUsedOptions.filter(w=>ids.has(w.id)).map(w=>w.name).sort((a,b)=>a.localeCompare(b))}
+$('partsWhereUsedFilterList').innerHTML=usedWhereUsedNamesFor('part').map(n=>`<option value="${esc(n)}"></option>`).join('');
+$('hardwareWhereUsedFilterList').innerHTML=usedWhereUsedNamesFor('hardware').map(n=>`<option value="${esc(n)}"></option>`).join('');
+$('electricalWhereUsedFilterList').innerHTML=usedWhereUsedNamesFor('electrical').map(n=>`<option value="${esc(n)}"></option>`).join('');
+renderAll()
 }catch(e){alert('RIS load error: '+e.message)}}
 $('refreshBtn').onclick=loadAll;
 
